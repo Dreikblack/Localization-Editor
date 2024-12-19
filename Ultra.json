@@ -1,0 +1,29 @@
+{
+	"project": {
+		"configurations": [
+			{
+				"launch": [
+					{
+						"commandline": "+map \"$MAPFILE\"",
+						"path": "Localization Editor.exe"
+					}
+				],
+				"name": "Run"
+			},
+			{
+				"launch": [
+					{
+						"commandline": "+map \"$MAPFILE\"",
+						"path": "Localization Editor_d.exe"
+					}
+				],
+				"name": "Debug"
+			}
+		],
+		"language": "None",
+		"name": "Localization Editor",
+		"password": "V{][.iO+tl<aa6ByJ:y}(P88-xEi!N%:#VL3uotsE6jA{x6t]H^y?88=FfbUZjNj",
+		"template": "Common",
+		"uuid": "8f4dcdc3-512c-46d4-9509-e9b574b5b02d"
+	}
+}
