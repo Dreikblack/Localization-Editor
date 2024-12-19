@@ -52,5 +52,6 @@ public:
 	void setHeight(int height) override;
 	void setWidth(int width);
 	void KeyUp(const KeyCode key) override;
+	void updateModelPanel();
 };
 

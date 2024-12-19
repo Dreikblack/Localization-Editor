@@ -230,3 +230,9 @@ void Dialog::KeyUp(const KeyCode key) {
 	//	}
 	//}
 }
+
+void Dialog::updateModelPanel() {
+	if (modalBackgroundPanel) {
+		modalBackgroundPanel->SetShape(0, 0, GetInterface()->root->size.width, GetInterface()->root->size.height);
+	}
+}

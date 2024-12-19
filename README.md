@@ -1,4 +1,5 @@
 **Localization Editor** is a tool for creating and editing localization/language files which your game or application can use to support several languages.
+
 You can also find a lot of custom widgets for Ultra Engine in Source\UI\CustomWidgets
 
 ![](https://media.discordapp.net/attachments/1216537215434358865/1318999280891068486/Localization_Editor_3.gif?ex=67645d4e&is=67630bce&hm=65f6e560296fe6e232bcbc2fe4dcd621acea7239a504a8f7b6a91aecae435962&=&width=1257&height=670)

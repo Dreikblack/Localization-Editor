@@ -320,7 +320,8 @@ void Application::updateSizes() {
 	table->setColumnWidthes({ keyWidth, witdh - keyWidth - indent });
 	tableContainer->setSize(witdh - indent, height - tableContainer->getPositionY());
 	tableContainer->updateInnerContainerSize();
-	
+	editDialog->setPosition(witdh / 2 - editDialog->getWidth() / 2, height / 2 - editDialog->getHeight() / 2);
+	editDialog->updateModelPanel();
 }
 
 void Application::loadLocalization(WString file) {
