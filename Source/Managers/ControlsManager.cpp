@@ -71,12 +71,26 @@ void ControlsManager::setDefaultKeys() {
 
 	setAction(ACTION_CONFIRM, getDefaultKeys(ACTION_CONFIRM));
 	setAction(ACTION_CANCEL, getDefaultKeys(ACTION_CANCEL));
+	setAction(ACTION_NEW_FILE, getDefaultKeys(ACTION_NEW_FILE));
+	setAction(ACTION_OPEN_FILE, getDefaultKeys(ACTION_OPEN_FILE));
+	setAction(ACTION_SAVE_FILES, getDefaultKeys(ACTION_SAVE_FILES));
+	setAction(ACTION_ADD_STRING, getDefaultKeys(ACTION_ADD_STRING));
+	setAction(ACTION_EDIT_STRING, getDefaultKeys(ACTION_EDIT_STRING));
+	setAction(ACTION_DELETE_STRING, getDefaultKeys(ACTION_DELETE_STRING));
+	setAction(ACTION_CONTROL, getDefaultKeys(ACTION_CONTROL));
 }
 
 vector<KeyCode> ControlsManager::getDefaultKeys(ACTION_TYPE action) {
 	switch (action) {
 	case ACTION_CONFIRM: return { KEY_SPACE,  KEY_ENTER };
 	case ACTION_CANCEL: return { KEY_ESCAPE };
+	case ACTION_NEW_FILE: return { KEY_N };
+	case ACTION_OPEN_FILE: return { KEY_O };
+	case ACTION_SAVE_FILES: return { KEY_S };
+	case ACTION_ADD_STRING: return { KEY_A };
+	case ACTION_EDIT_STRING: return { KEY_E };
+	case ACTION_DELETE_STRING: return { KEY_D };
+	case ACTION_CONTROL: return { KEY_CONTROL };
 	}
 }
 

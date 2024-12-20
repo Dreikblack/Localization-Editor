@@ -28,7 +28,10 @@ protected:
 	shared_ptr<CustomButton> saveFileButton;
 	shared_ptr<CustomTextField> filterField;
 	shared_ptr<CustomButton> addStringButton;
+	shared_ptr<CustomButton> editStringButton;
 	shared_ptr<CustomButton> removeStringButton;
+	shared_ptr<CustomLabel> saveLabel;
+	shared_ptr<Timer> saveLabelTimer;
 	int keyWidth;
 	//language - file path
 	map<WString, WString> languages;
@@ -43,6 +46,7 @@ protected:
 	void setLocalizationToTable(WString language);
 	void saveLocalizations();
 public:
+	static bool saveLabelCallback(const UltraEngine::Event& ev, shared_ptr<UltraEngine::Object> extra);
 	Application(Application const&) = delete;
 	Application& operator=(Application const&) = delete;
 	static std::shared_ptr<Application> getInstance();

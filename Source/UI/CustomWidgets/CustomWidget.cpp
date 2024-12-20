@@ -64,7 +64,7 @@ void CustomWidget::setHintText(const WString& text, bool scaleWidth, bool scaleH
 		auto globalPosition = GetPosition(true);
 		globalPosition.y = globalPosition.y + getHeight() + indent;
 		hintLabel = CustomLabel::create(text, 0, globalPosition.y, hintWidth, getHeight(), GetInterface()->root, TEXT_MIDDLE);
-		hintLabel->SetColor(hintLabel->GetColor(WIDGETCOLOR_BACKGROUND) * 0.5f);
+		hintLabel->SetColor(hintLabel->GetColor(WIDGETCOLOR_BACKGROUND) * 0.9f);
 		hintLabel->setHeight(hintHeight);
 		hintLabel->SetHidden(true);
 		hintLabel->setBackground(true);
@@ -76,7 +76,7 @@ void CustomWidget::setHintText(const WString& text, bool scaleWidth, bool scaleH
 		hintLabel->setAutoFontScale();
 	auto hintFontScale = hintLabel->getFontScale();
 	if (scaleHeight) {
-		hintHeight = Round(float(GetInterface()->GetFontHeight(GetInterface()->font, hintFontScale, fontweight)) * hintFontScale);
+		hintHeight = Round(float(GetInterface()->GetFontHeight(GetInterface()->font, hintFontScale, fontweight)));
 		hintHeight = hintHeight * subStrings.size() + Round((float)subStrings.size() * (float)hintHeight * 0.2f);
 		hintLabel->setHeight(hintHeight);
 	}

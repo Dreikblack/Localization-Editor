@@ -94,7 +94,7 @@ void Application::init() {
 	buttonPositionX = buttonPositionX + buttonWidth;
 
 	int languageComboBoxPositionX = buttonPositionX;
-	int languageComboBoxPositionY = 1;	
+	int languageComboBoxPositionY = 1;
 
 	buttonPositionX = 1;
 	buttonName = resourceManager->getLocalString("KeyFilter");
@@ -102,7 +102,7 @@ void Application::init() {
 	int postitionY = buttonHeight + indent;
 	auto filterLabel = CustomLabel::create(buttonPositionX, postitionY, buttonWidth, buttonHeight, ui->root, TEXT_LEFT | TEXT_MIDDLE);
 	filterLabel->SetText(buttonName);
-	
+
 	buttonPositionX = buttonPositionX + buttonWidth + indent;
 	buttonWidth = guiScale * 5;
 	filterField = CustomTextField::create(buttonPositionX, postitionY, buttonWidth, buttonHeight, ui->root);
@@ -132,6 +132,23 @@ void Application::init() {
 		return true;
 		});
 
+	buttonName = resourceManager->getLocalString("EditString");
+	buttonPositionX = buttonPositionX + buttonWidth + indent;
+	buttonWidth = ui->GetTextWidth(ui->font, fontScale, buttonName, 1) + indent;
+	editStringButton = CustomButton::create(buttonPositionX, postitionY, buttonWidth, buttonHeight, ui->root, WIDGET_BORDER | WIDGET_BACKGROUND | WIDGET_BORDER_ROUNDED);
+	editStringButton->SetText(buttonName);
+	editStringButton->enable(false);
+	editStringButton->setListener([this](Event event) {
+		if (!table->getSelectedItem().empty()) {
+			auto dataRow = table->getSelectedItem();
+			editDialog->setLocalString(dataRow[0], dataRow[1]);
+			editDialog->localStringId = event.data;
+			editDialog->setLocalTextTitle("EditLocalStringDialog.Title");
+			editDialog->SetHidden(false);
+		}
+		return true;
+		});
+
 	buttonName = resourceManager->getLocalString("RemoveString");
 	buttonPositionX = buttonPositionX + buttonWidth + indent;
 	buttonWidth = ui->GetTextWidth(ui->font, fontScale, buttonName, 1) + indent;
@@ -149,7 +166,7 @@ void Application::init() {
 		}
 		return true;
 		});
-	
+
 	postitionY = postitionY + buttonHeight + indent;
 
 	tableContainer = Container::create(indent, postitionY, width - indent, height - postitionY, ui->root, CONTAINER_SCROLL);
@@ -166,7 +183,7 @@ void Application::init() {
 			editDialog->SetHidden(false);
 		}
 		return true;
-	});
+		});
 	table->setFilter([this]([[maybe_unused]] vector<WString> dataRow) {
 		if (filterField->GetText().empty()) {
 			return true;
@@ -272,9 +289,60 @@ void Application::init() {
 		return true;
 		});
 
+	saveLabel = CustomLabel::create(guiScale, guiScale, buttonWidth, guiScale, ui->root, TEXT_LEFT | TEXT_MIDDLE);
+	saveLabel->setLocalText("FilesSaved", true);
+	saveLabel->SetHidden(true);
+	saveLabel->setBackground(true);
+	saveLabel->SetColor(Vec4(0.1, 0.1, 0.1, 0.75));
+
+	newFileButton->setLocalHintText("NewFile.Hint", true, true);
+	openFileButton->setLocalHintText("OpenFile.Hint", true, false, true, guiScale / 2);
+	saveFileButton->setLocalHintText("SaveFile.Hint", true, false, true, guiScale / 2);
+	addStringButton->setLocalHintText("AddString.Hint", true, false, true, guiScale / 2);
+	editStringButton->setLocalHintText("EditString.Hint", true, false, true, guiScale / 2);
+	removeStringButton->setLocalHintText("RemoveString.Hint", true, false, true, guiScale / 2);
 	if (!settingsManager->lastFilePath.empty()) {
 		loadLocalization(settingsManager->lastFilePath);
 	}
+
+	std::weak_ptr<CustomButton> newFileButtonWeak = newFileButton;
+	controlsManager->setActionListener(ACTION_NEW_FILE, Self(), [this, newFileButtonWeak](Event event) {
+		if (editDialog->GetHidden() && controlsManager->isActionKeyDown(ACTION_CONTROL)) {
+			newFileButtonWeak.lock()->useListener();
+		}
+		});
+
+	std::weak_ptr<CustomButton> openFileButtonWeak = openFileButton;
+	controlsManager->setActionListener(ACTION_OPEN_FILE, Self(), [this, openFileButtonWeak](Event event) {
+		if (editDialog->GetHidden() && controlsManager->isActionKeyDown(ACTION_CONTROL)) {
+			openFileButtonWeak.lock()->useListener();
+		}
+		});
+
+	std::weak_ptr<CustomButton> saveFileButtonWeak = saveFileButton;
+	controlsManager->setActionListener(ACTION_SAVE_FILES, Self(), [this, saveFileButtonWeak](Event event) {
+		if (editDialog->GetHidden() && controlsManager->isActionKeyDown(ACTION_CONTROL)) {
+			saveFileButtonWeak.lock()->useListener();
+		}
+		});
+
+	controlsManager->setActionListener(ACTION_ADD_STRING, Self(), [this](Event event) {
+		if (editDialog->GetHidden() && controlsManager->isActionKeyDown(ACTION_CONTROL)) {
+			addStringButton->useListener();
+		}
+		});
+
+	controlsManager->setActionListener(ACTION_EDIT_STRING, Self(), [this](Event event) {
+		if (editDialog->GetHidden() && controlsManager->isActionKeyDown(ACTION_CONTROL)) {
+			editStringButton->useListener();
+		}
+		});
+
+	controlsManager->setActionListener(ACTION_DELETE_STRING, Self(), [this](Event event) {
+		if (editDialog->GetHidden() && controlsManager->isActionKeyDown(ACTION_CONTROL)) {
+			removeStringButton->useListener();
+		}
+		});
 }
 
 void Application::loop() {
@@ -322,6 +390,7 @@ void Application::updateSizes() {
 	tableContainer->updateInnerContainerSize();
 	editDialog->setPosition(witdh / 2 - editDialog->getWidth() / 2, height / 2 - editDialog->getHeight() / 2);
 	editDialog->updateModelPanel();
+	saveLabel->setPosition(witdh / 2 - saveLabel->getWidth() / 2, height / 2 - saveLabel->getHeight() / 2);
 }
 
 void Application::loadLocalization(WString file) {
@@ -345,6 +414,7 @@ void Application::loadLocalization(WString file) {
 	saveFileButton->enable(true);
 	addStringButton->enable(true);
 	removeStringButton->enable(true);
+	editStringButton->enable(true);
 	//keys
 	for (WString localFile : dir) {
 		if (ExtractExt(localFile) == WString::WString("local")) {
@@ -422,6 +492,19 @@ void Application::saveLocalizations() {
 		}		
 		stream->Close();
 	}
-	
+	saveLabel->SetHidden(false);
+	if (saveLabelTimer) {
+		saveLabelTimer->Stop();
+	}
+	saveLabelTimer = UltraEngine::CreateTimer(HINT_MAX_TIME);
+	ListenEvent(EVENT_TIMERTICK, saveLabelTimer, saveLabelCallback);
+}
+
+bool Application::saveLabelCallback(const UltraEngine::Event& ev, shared_ptr<UltraEngine::Object> extra) {
+	auto app = Application::getInstance();
+	app->saveLabelTimer->Stop();
+	app->saveLabelTimer = nullptr;
+	app->saveLabel->SetHidden(true);
+	return false;
 }
 
