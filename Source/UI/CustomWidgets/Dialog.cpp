@@ -40,11 +40,11 @@ bool Dialog::Initialize(const int x, const int y, const int width, const int hei
 		Self()->As<Dialog>(), BUTTON_PANEL_AGILE_ARROWS | (hasWidgetStyle(BUTTON_PANEL_CENTER) ? BUTTON_PANEL_CENTER : 0));
 
 	okButton = CustomButton::create(width - guiScale * 2 - indent * 2, height - buttonHeight - indent, okButtonWidth, buttonHeight, Self()->As<Widget>(), WIDGET_BORDER | WIDGET_BACKGROUND);
-	okButton->setLocalText("Dialog.Confirm");
+	okButton->setLocalText("Dialog.Confirm", true);
 	okButton->SetColor(0.8, 0.8, 0.8, 1, WIDGETCOLOR_SLIDERARROW);
 
 	cancelButton = CustomButton::create(width - guiScale - indent, height - buttonHeight - indent, cancelButtonWidth, buttonHeight, Self()->As<Widget>(), WIDGET_BORDER | WIDGET_BACKGROUND);
-	cancelButton->setLocalText("Dialog.Cancel");
+	cancelButton->setLocalText("Dialog.Cancel", true);
 	cancelButton->SetColor(0.8, 0.8, 0.8, 1, WIDGETCOLOR_SLIDERARROW);
 
 	if (isCrossOnly) {

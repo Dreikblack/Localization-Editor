@@ -131,7 +131,8 @@ void CustomButton::Draw(const int x, const int y, const int width, const int hei
 			blocks[2].color = color[WIDGETCOLOR_BORDER];
 		}
 	} else {
-		blocks[0].color += 0.1;
+		blocks[0].color = color[WIDGETCOLOR_RAISED];
+		blocks[0].gradient = 1;
 		blocks[2].color = color[WIDGETCOLOR_BORDER];
 	}
 	// text color

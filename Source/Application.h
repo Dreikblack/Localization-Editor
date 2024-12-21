@@ -12,6 +12,7 @@
 #include "UI/EditLocalStringDialog.h"
 #include "UI/CustomWidgets/CustomComboBox.h"
 #include "UI/CustomWidgets/CustomComboBox.cpp"
+#include "UI/SaveDialog.h"
 
 using namespace UltraEngine;
 
@@ -32,6 +33,8 @@ protected:
 	shared_ptr<CustomButton> removeStringButton;
 	shared_ptr<CustomLabel> saveLabel;
 	shared_ptr<Timer> saveLabelTimer;
+	shared_ptr<SaveDialog> notSavedDialog;
+	shared_ptr<CustomComboBox<WString>> languageComboBox;
 	int keyWidth;
 	//language - file path
 	map<WString, WString> languages;
@@ -40,11 +43,15 @@ protected:
 	//localization fileName -> localization map -> key:content
 	std::map<WString, std::map<WString, WString>> localizationsMap;
 	std::set<WString> keys;
+	bool isSaved;
 	Application();
 	void updateSizes();
 	void loadLocalization(WString filePath);
 	void setLocalizationToTable(WString language);
 	void saveLocalizations();
+	void newFile();
+	void openFile();
+	void switchLanguage();
 public:
 	static bool saveLabelCallback(const UltraEngine::Event& ev, shared_ptr<UltraEngine::Object> extra);
 	Application(Application const&) = delete;

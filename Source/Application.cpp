@@ -4,6 +4,7 @@
 
 Application::Application() {
 	keyWidth = 32;
+	isSaved = true;
 }
 
 struct StructApplication : public Application {
@@ -37,10 +38,14 @@ void Application::init() {
 	int buttonPositionX = 1;
 	auto newFileButton = CustomButton::create(buttonPositionX, 1, settingsManager->guiScale, buttonHeight, ui->root, WIDGET_BORDER | WIDGET_BACKGROUND | WIDGET_BORDER_ROUNDED);
 	newFileButton->setListener([this](Event event) {
-		WString file = RequestFile(resourceManager->getLocalString("NewFile.Dialog.Title"), settingsManager->lastFilePath, resourceManager->getLocalString("OpenFile.Dialog.FileType"), 0, true);
-		if (!file.empty()) {
-			WriteFile(file);
-			loadLocalization(file);
+		if (!isSaved) {
+			notSavedDialog->setFunctionListener([this](Event event) {
+				newFile();
+				return true;
+				});
+			notSavedDialog->SetHidden(false);
+		} else {
+			newFile();
 		}
 		return true;
 		});
@@ -56,9 +61,14 @@ void Application::init() {
 	auto openFileButton = CustomButton::create(buttonPositionX, 1, buttonWidth, buttonHeight, ui->root, WIDGET_BORDER | WIDGET_BACKGROUND | WIDGET_BORDER_ROUNDED);
 	openFileButton->SetText(buttonName);
 	openFileButton->setListener([this](Event event) {
-		WString file = RequestFile(resourceManager->getLocalString("OpenFile.Dialog.Title"), settingsManager->lastFilePath, resourceManager->getLocalString("OpenFile.Dialog.FileType"));
-		if (!file.empty()) {
-			loadLocalization(file);
+		if (!isSaved) {
+			notSavedDialog->setFunctionListener([this](Event event) {
+				openFile();
+				return true;
+				});
+			notSavedDialog->SetHidden(false);
+		} else {
+			openFile();
 		}
 		return true;
 		});
@@ -163,6 +173,8 @@ void Application::init() {
 				localMap.second.erase(key);
 			}
 			setLocalizationToTable(currentLocalization);
+			isSaved = false;
+			saveFileButton->enable(true);
 		}
 		return true;
 		});
@@ -228,7 +240,7 @@ void Application::init() {
 		});
 
 	//should be last for correct draw order
-	shared_ptr<CustomComboBox<WString>> languageComboBox = CustomComboBox<WString>::create(languageComboBoxPositionX, localizationComboBoxPositionY, guiScale * 2, buttonHeight, ui->root);
+	languageComboBox = CustomComboBox<WString>::create(languageComboBoxPositionX, localizationComboBoxPositionY, guiScale * 2, buttonHeight, ui->root);
 	std::weak_ptr<CustomComboBox<WString>> languageComboBoxWeak = languageComboBox;
 	vector<std::pair<WString, WString>> localLanguages;
 	std::pair<WString, WString> currentLanguage;
@@ -240,14 +252,15 @@ void Application::init() {
 	}
 	languageComboBox->addItems(localLanguages);
 	languageComboBox->selectItem(currentLanguage);
-	languageComboBox->setListener([languageComboBoxWeak]([[maybe_unused]] Event const& event) {
-		auto language = languageComboBoxWeak.lock()->getSelectedItem().first;
-		auto settingsManager = SettingsManager::getInstance();
-		if (language != settingsManager->language) {
-			settingsManager->language = language;
-			settingsManager->saveConfig();
-			RunFile(APPLICATION_NAME + ".exe");
-			exit(0);
+	languageComboBox->setListener([this]([[maybe_unused]] Event const& event) {
+		if (!isSaved) {
+			notSavedDialog->setFunctionListener([this](Event event) {
+				switchLanguage();
+				return true;
+				});
+			notSavedDialog->SetHidden(false);
+		} else {
+			switchLanguage();
 		}
 		return true;
 		});
@@ -286,6 +299,8 @@ void Application::init() {
 			}
 			table->updateDataRow(editDialog->localStringId, editDialog->getLocalString());
 		}
+		saveFileButton->enable(true);
+		isSaved = false;
 		editDialog->SetHidden(true);
 		return true;
 		});
@@ -297,11 +312,23 @@ void Application::init() {
 	saveLabel->SetColor(Vec4(0.1, 0.1, 0.1, 0.75));
 
 	newFileButton->setLocalHintText("NewFile.Hint", true, true);
-	openFileButton->setLocalHintText("OpenFile.Hint", true, false, true, guiScale / 2);
-	saveFileButton->setLocalHintText("SaveFile.Hint", true, false, true, guiScale / 2);
-	addStringButton->setLocalHintText("AddString.Hint", true, false, true, guiScale / 2);
-	editStringButton->setLocalHintText("EditString.Hint", true, false, true, guiScale / 2);
-	removeStringButton->setLocalHintText("RemoveString.Hint", true, false, true, guiScale / 2);
+	openFileButton->setLocalHintText("OpenFile.Hint", true, true);
+	saveFileButton->setLocalHintText("SaveFile.Hint", true, true);
+	addStringButton->setLocalHintText("AddString.Hint", true, true);
+	editStringButton->setLocalHintText("EditString.Hint", true, true);
+	removeStringButton->setLocalHintText("RemoveString.Hint", true, true);
+
+	int notSavedDialogWidth = guiScale * 10;
+	int notSavedDialogHeight = guiScale * 3;
+	notSavedDialog = SaveDialog::create(width / 2 - notSavedDialogWidth / 2, height / 2 - notSavedDialogHeight / 2, notSavedDialogWidth, notSavedDialogHeight, ui->root);
+	notSavedDialog->SetHidden(true);
+	notSavedDialog->setSaveListener([this](Event event) {
+		isSaved = true;
+		saveFileButton->enable(false);
+		saveLocalizations();
+		return true;
+		});
+
 	if (!settingsManager->lastFilePath.empty()) {
 		loadLocalization(settingsManager->lastFilePath);
 	}
@@ -357,7 +384,15 @@ void Application::loop() {
 			switch (ev.id) {
 			case EVENT_WINDOWCLOSE:
 				if (ev.source == window) {
-					exit(0);
+					if (!isSaved) {
+						notSavedDialog->setFunctionListener([this](Event event) {
+							exit(0);
+							return true;
+							});
+						notSavedDialog->SetHidden(false);
+					} else {
+						exit(0);
+					}
 					break;
 				}
 				break;		
@@ -395,6 +430,8 @@ void Application::updateSizes() {
 }
 
 void Application::loadLocalization(WString file) {
+	isSaved = true;
+	saveFileButton->enable(false);
 	settingsManager->lastFilePath = file;
 	WString fileName = StripAll(file);
 	settingsManager->saveConfig();
@@ -412,7 +449,6 @@ void Application::loadLocalization(WString file) {
 		langName = fileName.Left(foundDot);
 	}
 	window->SetText(APPLICATION_NAME + " - " + StripDir(file));
-	saveFileButton->enable(true);
 	addStringButton->enable(true);
 	removeStringButton->enable(true);
 	editStringButton->enable(true);
@@ -459,7 +495,7 @@ void Application::loadLocalization(WString file) {
 	localizationComboBox->Enable();
 	vector<std::pair<WString, WString>> localLanguages;
 	std::pair<WString, WString> currentLanguage;
-	for (auto& [language, file] : languages) {
+	for (auto& [language, languageFile] : languages) {
 		localLanguages.emplace_back(language, language);
 		if (language == langName) {
 			currentLanguage = std::make_pair(language, language);
@@ -499,6 +535,31 @@ void Application::saveLocalizations() {
 	}
 	saveLabelTimer = UltraEngine::CreateTimer(HINT_MAX_TIME);
 	ListenEvent(EVENT_TIMERTICK, saveLabelTimer, saveLabelCallback);
+}
+
+void Application::newFile() {
+	WString file = RequestFile(resourceManager->getLocalString("NewFile.Dialog.Title"), settingsManager->lastFilePath, resourceManager->getLocalString("OpenFile.Dialog.FileType"), 0, true);
+	if (!file.empty()) {
+		WriteFile(file);
+		loadLocalization(file);
+	}
+}
+
+void Application::openFile() {
+	WString file = RequestFile(resourceManager->getLocalString("OpenFile.Dialog.Title"), settingsManager->lastFilePath, resourceManager->getLocalString("OpenFile.Dialog.FileType"));
+	if (!file.empty()) {
+		loadLocalization(file);
+	}
+}
+
+void Application::switchLanguage() {
+	auto language = languageComboBox->getSelectedItem().first;
+	if (language != settingsManager->language) {
+		settingsManager->language = language;
+		settingsManager->saveConfig();
+		RunFile(APPLICATION_NAME + ".exe");
+		exit(0);
+	}
 }
 
 bool Application::saveLabelCallback(const UltraEngine::Event& ev, shared_ptr<UltraEngine::Object> extra) {
