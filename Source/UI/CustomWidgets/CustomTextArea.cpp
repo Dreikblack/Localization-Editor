@@ -310,8 +310,63 @@ bool CustomTextArea::KeyDown(const KeyCode key) {
 			}
 		}
 		wasSymbolTyped = false;
+	} else if (key == KEY_UP) {
+		vector<WString> lines = text.Split("\n");
+		if (lines.size() > 1 && caretPosition > lines[0].size()) {
+			int totalCharCount = lines[0].size() + 1;
+			for (int i = 1; i < lines.size(); i++) {
+				if (caretPosition < (totalCharCount + lines[i].size() + 1)) {
+					caretPosition = totalCharCount - lines[i - 1].size() - 1;
+					if (caretPosition < 0) {
+						caretPosition = 0;
+					}
+					sellen = 0;
+					UpdateOffset();
+					Redraw();
+					break;
+				}
+				totalCharCount = totalCharCount + lines[i].size() + 1;
+			}
+		}
+	} else if (key == KEY_DOWN) {
+		vector<WString> lines = text.Split("\n");
+		if (lines.size() > 1) {
+			int totalCharCount = 0;
+			for (int i = 0; i < (lines.size() - 1); i++) {
+				if (caretPosition < (totalCharCount + lines[i].size() + 1)) {
+					caretPosition = totalCharCount + lines[i].size() + 1;
+					sellen = 0;
+					UpdateOffset();
+					Redraw();
+					break;
+				}
+				totalCharCount = totalCharCount + lines[i].size() + 1;
+			}
+		}
 	} else if (key == KEY_ENTER) {
 		KeyChar('\n');
+	} else if (key == KEY_DELETE) {
+		auto s = text;
+		if (s.length() > 0) {
+			if (sellen == 0) {
+				if (caretPosition == s.length()) {
+					return CustomWidget::KeyDown(key);
+				}  else if (caretPosition == 0) {
+					s = s.Right(s.length() - 1);
+				} else if (caretPosition > 0) {
+					s = s.Left(caretPosition) + s.Right(s.length() - caretPosition - 1);
+				}
+			} else {
+				auto c1 = Min(caretPosition, caretPosition + sellen);
+				auto c2 = Max(caretPosition, caretPosition + sellen);
+				s = s.Left(c1) + s.Right(s.length() - c2);
+				caretPosition = c1;
+				sellen = 0;
+			}
+				m_text = s;
+				UpdateOffset();
+				Redraw();
+			}
 	}
 	if (wasSymbolTyped && doTriggerValueChangeOnType && valueChangelistener) {
 		valueChangelistener(Event(EVENT_WIDGETACTION, Self()->As<CustomTextArea>(), getIntegerValue(), 0, 0, nullptr, text));
@@ -344,7 +399,6 @@ void CustomTextArea::KeyChar(const int charcode) {
 				caretPosition = c1;
 				sellen = 0;
 			}
-			//cursorblinkmode = true;
 			if (text != s) {
 				m_text = s;
 				UpdateOffset();

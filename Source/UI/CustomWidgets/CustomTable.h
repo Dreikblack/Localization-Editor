@@ -36,5 +36,6 @@ public:
 	void setFilter(std::function<bool(vector<WString>)> const& _filter);
 	void updateDataRow(int id, vector<WString> dataRow);
 	vector<vector<WString>> getData() const;
+	void selectDataRow(vector<WString> dataRow);
 };
 

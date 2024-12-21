@@ -204,3 +204,17 @@ void CustomTable::updateDataRow(int id, vector<WString> dataRow) {
 vector<vector<WString>> CustomTable::getData() const {
 	return data;
 }
+
+void CustomTable::selectDataRow(vector<WString> dataRow) {
+	for (int i = 0; i < data.size(); i++) {
+		if (data[i] == dataRow) {
+			for (int j = 0; j < data.size(); j++) {
+				if (dataIds[j] == i) {
+					selectedItemId = j;
+					return;
+				}
+			}
+			return;
+		}
+	}
+}

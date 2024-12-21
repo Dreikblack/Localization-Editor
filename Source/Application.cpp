@@ -268,6 +268,7 @@ void Application::init() {
 				localMap.second[newKey] = newContent;
 			}
 			setLocalizationToTable(currentLocalization);
+			table->selectDataRow(editDialog->getLocalString());
 		} else {
 			WString key = table->getSelectedItem()[0];
 			if (key != newKey) {

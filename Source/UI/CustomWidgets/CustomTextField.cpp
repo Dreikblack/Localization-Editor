@@ -367,7 +367,29 @@ bool CustomTextField::KeyDown(const KeyCode key) {
 		}
 		GetInterface()->SetFocus(nullptr);
 		wasSymbolTyped = false;
+	} else if (key == KEY_DELETE) {
+	auto s = text;
+	if (s.length() > 0) {
+		if (sellen == 0) {
+			if (caretPosition == s.length()) {
+				return CustomWidget::KeyDown(key);
+			} else if (caretPosition == 0) {
+				s = s.Right(s.length() - 1);
+			} else if (caretPosition > 0) {
+				s = s.Left(caretPosition) + s.Right(s.length() - caretPosition - 1);
+			}
+		} else {
+			auto c1 = Min(caretPosition, caretPosition + sellen);
+			auto c2 = Max(caretPosition, caretPosition + sellen);
+			s = s.Left(c1) + s.Right(s.length() - c2);
+			caretPosition = c1;
+			sellen = 0;
+		}
+		m_text = s;
+		UpdateOffset();
+		Redraw();
 	}
+}
 	if (wasSymbolTyped && doTriggerValueChangeOnType && valueChangelistener) {
 		valueChangelistener(Event(EVENT_WIDGETACTION, Self()->As<CustomTextField>(), getIntegerValue(), 0, 0, nullptr, text));
 	}
