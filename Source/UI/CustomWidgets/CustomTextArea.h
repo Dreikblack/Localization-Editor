@@ -20,7 +20,6 @@ protected:
 	void TripleClick(const MouseButton button, const int x, const int y) override;
 	void MouseMove(const int x, const int y) override;
 	bool KeyDown(const KeyCode key) override;
-	void KeyChar(const int keychar) override;
 	void Draw(const int x, const int y, const int width, const int height) override;
 public:
 	static shared_ptr<CustomTextArea> create(const int x, const int y, const int width, const int height, const int _stringHeight, shared_ptr<Widget> parent, const int style = 0, WString text = "");

@@ -269,46 +269,10 @@ bool CustomTextArea::KeyDown(const KeyCode key) {
 		wasSymbolTyped = false;
 	}
 	if (key == KEY_LEFT) {
-		if (shiftPressed == false and sellen != 0) {
-			//Move the caret to the left side of the selection
-			caretPosition = Min(caretPosition, caretPosition + sellen);
-			sellen = 0;
-			UpdateOffset();
-			Redraw();
-		} else {
-			//Move the caret one character left
-			if (caretPosition > 0) {
-				caretPosition--;
-				if (shiftPressed) {
-					sellen++;
-				} else {
-					sellen = 0;
-				}
-				UpdateOffset();
-				Redraw();
-			}
-		}
+		moveCaretLeft();
 		wasSymbolTyped = false;
 	} else if (key == KEY_RIGHT) {
-		if (shiftPressed == false and sellen != 0) {
-			//Move the caret to the right side of the selection
-			caretPosition = Max(caretPosition, caretPosition + sellen);
-			sellen = 0;
-			UpdateOffset();
-			Redraw();
-		} else {
-			//Move the caret one character right
-			if (caretPosition < text.length()) {
-				caretPosition++;
-				if (shiftPressed) {
-					sellen--;
-				} else {
-					sellen = 0;
-				}
-				UpdateOffset();
-				Redraw();
-			}
-		}
+		moveCaretRight();
 		wasSymbolTyped = false;
 	} else if (key == KEY_UP) {
 		vector<WString> lines = text.Split("\n");
@@ -316,7 +280,12 @@ bool CustomTextArea::KeyDown(const KeyCode key) {
 			int totalCharCount = lines[0].size() + 1;
 			for (int i = 1; i < lines.size(); i++) {
 				if (caretPosition < (totalCharCount + lines[i].size() + 1)) {
-					caretPosition = totalCharCount - lines[i - 1].size() - 1;
+					int lineCaretPos = caretPosition - totalCharCount;
+					if (lines[i - 1].size() >= lineCaretPos) {
+						caretPosition = totalCharCount - lines[i - 1].size() - 1 + lineCaretPos;
+					} else {
+						caretPosition = totalCharCount - 1;
+					}
 					if (caretPosition < 0) {
 						caretPosition = 0;
 					}
@@ -334,7 +303,12 @@ bool CustomTextArea::KeyDown(const KeyCode key) {
 			int totalCharCount = 0;
 			for (int i = 0; i < (lines.size() - 1); i++) {
 				if (caretPosition < (totalCharCount + lines[i].size() + 1)) {
-					caretPosition = totalCharCount + lines[i].size() + 1;
+					int lineCaretPos = caretPosition - totalCharCount;
+					if (lines[i + 1].size() >= lineCaretPos) {
+						caretPosition = totalCharCount + lines[i].size() + 1 + lineCaretPos;
+					} else {
+						caretPosition = totalCharCount + lines[i].size() + 1 + lines[i + 1].size();
+					}
 					sellen = 0;
 					UpdateOffset();
 					Redraw();
@@ -346,84 +320,12 @@ bool CustomTextArea::KeyDown(const KeyCode key) {
 	} else if (key == KEY_ENTER) {
 		KeyChar('\n');
 	} else if (key == KEY_DELETE) {
-		auto s = text;
-		if (s.length() > 0) {
-			if (sellen == 0) {
-				if (caretPosition == s.length()) {
-					return CustomWidget::KeyDown(key);
-				}  else if (caretPosition == 0) {
-					s = s.Right(s.length() - 1);
-				} else if (caretPosition > 0) {
-					s = s.Left(caretPosition) + s.Right(s.length() - caretPosition - 1);
-				}
-			} else {
-				auto c1 = Min(caretPosition, caretPosition + sellen);
-				auto c2 = Max(caretPosition, caretPosition + sellen);
-				s = s.Left(c1) + s.Right(s.length() - c2);
-				caretPosition = c1;
-				sellen = 0;
-			}
-				m_text = s;
-				UpdateOffset();
-				Redraw();
-			}
+		del();
 	}
 	if (wasSymbolTyped && doTriggerValueChangeOnType && valueChangelistener) {
 		valueChangelistener(Event(EVENT_WIDGETACTION, Self()->As<CustomTextArea>(), getIntegerValue(), 0, 0, nullptr, text));
 	}
 	return CustomWidget::KeyDown(key);
-}
-
-void CustomTextArea::KeyChar(const int charcode) {
-	if ((CUSTOM_TEXT_FIELD_READONLY & style) != 0) return;
-
-	auto s = text;
-	auto c = WChr(charcode);
-	if (c == "\x1a") return;// undo
-	if (c == "\x16") return;// paste
-	if (c == "\b") {
-		//Backspace
-		if (s.length() > 0) {
-			if (sellen == 0) {
-				if (caretPosition == s.length()) {
-					s = s.Left(s.length() - 1);
-				} else if (caretPosition > 0) {
-					s = s.Left(caretPosition - 1) + s.Right(s.length() - caretPosition);
-				}
-				caretPosition = caretPosition - 1;
-				caretPosition = Max(0, caretPosition);
-			} else {
-				auto c1 = Min(caretPosition, caretPosition + sellen);
-				auto c2 = Max(caretPosition, caretPosition + sellen);
-				s = s.Left(c1) + s.Right(s.length() - c2);
-				caretPosition = c1;
-				sellen = 0;
-			}
-			if (text != s) {
-				m_text = s;
-				UpdateOffset();
-				Redraw();
-			}
-		}
-	} else if (c != "\r" and c != "") {
-		if ((style & CUSTOM_TEXT_FIELD_INTEGER) != 0) {
-			if (!isdigit(charcode)) return;
-		}
-
-		//Insert a new character
-		auto c1 = Min(caretPosition, caretPosition + sellen);
-		auto c2 = Max(caretPosition, caretPosition + sellen);
-		s = s.Left(c1) + c + s.Right(s.length() - c2);
-		if (maxSymbols != 0 && (s.size()) > maxSymbols) return;
-		caretPosition = caretPosition + 1;
-		if (sellen < 0) caretPosition = caretPosition + sellen;
-		sellen = 0;
-		if (text != s) {
-			m_text = s;
-			UpdateOffset();
-			Redraw();
-		}
-	}
 }
 
 void CustomTextArea::SetText(const WString& text) {

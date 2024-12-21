@@ -317,46 +317,10 @@ bool CustomTextField::KeyDown(const KeyCode key) {
 		wasSymbolTyped = false;
 	}
 	if (key == KEY_LEFT or key == KEY_UP) {
-		if (shiftPressed == false and sellen != 0) {
-			//Move the caret to the left side of the selection
-			caretPosition = Min(caretPosition, caretPosition + sellen);
-			sellen = 0;
-			UpdateOffset();
-			Redraw();
-		} else {
-			//Move the caret one character left
-			if (caretPosition > 0) {
-				caretPosition--;
-				if (shiftPressed) {
-					sellen++;
-				} else {
-					sellen = 0;
-				}
-				UpdateOffset();
-				Redraw();
-			}
-		}
+		moveCaretLeft();
 		wasSymbolTyped = false;
 	} else if (key == KEY_RIGHT or key == KEY_DOWN) {
-		if (shiftPressed == false and sellen != 0) {
-			//Move the caret to the right side of the selection
-			caretPosition = Max(caretPosition, caretPosition + sellen);
-			sellen = 0;
-			UpdateOffset();
-			Redraw();
-		} else {
-			//Move the caret one character right
-			if (caretPosition < text.length()) {
-				caretPosition++;
-				if (shiftPressed) {
-					sellen--;
-				} else {
-					sellen = 0;
-				}
-				UpdateOffset();
-				Redraw();
-			}
-		}
+		moveCaretRight();
 		wasSymbolTyped = false;
 	} else if (key == KEY_ENTER) {
 		sellen = 0;
@@ -368,11 +332,64 @@ bool CustomTextField::KeyDown(const KeyCode key) {
 		GetInterface()->SetFocus(nullptr);
 		wasSymbolTyped = false;
 	} else if (key == KEY_DELETE) {
+		del();
+	}
+	if (wasSymbolTyped && doTriggerValueChangeOnType && valueChangelistener) {
+		valueChangelistener(Event(EVENT_WIDGETACTION, Self()->As<CustomTextField>(), getIntegerValue(), 0, 0, nullptr, text));
+	}
+	return CustomWidget::KeyDown(key);
+}
+
+void CustomTextField::moveCaretLeft() {
+	if (shiftPressed == false and sellen != 0) {
+		//Move the caret to the left side of the selection
+		caretPosition = Min(caretPosition, caretPosition + sellen);
+		sellen = 0;
+		UpdateOffset();
+		Redraw();
+	} else {
+		//Move the caret one character left
+		if (caretPosition > 0) {
+			caretPosition--;
+			if (shiftPressed) {
+				sellen++;
+			} else {
+				sellen = 0;
+			}
+			UpdateOffset();
+			Redraw();
+		}
+	}
+}
+
+void CustomTextField::moveCaretRight() {
+	if (shiftPressed == false and sellen != 0) {
+		//Move the caret to the right side of the selection
+		caretPosition = Max(caretPosition, caretPosition + sellen);
+		sellen = 0;
+		UpdateOffset();
+		Redraw();
+	} else {
+		//Move the caret one character right
+		if (caretPosition < text.length()) {
+			caretPosition++;
+			if (shiftPressed) {
+				sellen--;
+			} else {
+				sellen = 0;
+			}
+			UpdateOffset();
+			Redraw();
+		}
+	}
+}
+
+void CustomTextField::del() {
 	auto s = text;
-	if (s.length() > 0) {
+	if (!s.empty()) {
 		if (sellen == 0) {
 			if (caretPosition == s.length()) {
-				return CustomWidget::KeyDown(key);
+				return;
 			} else if (caretPosition == 0) {
 				s = s.Right(s.length() - 1);
 			} else if (caretPosition > 0) {
@@ -389,11 +406,7 @@ bool CustomTextField::KeyDown(const KeyCode key) {
 		UpdateOffset();
 		Redraw();
 	}
-}
-	if (wasSymbolTyped && doTriggerValueChangeOnType && valueChangelistener) {
-		valueChangelistener(Event(EVENT_WIDGETACTION, Self()->As<CustomTextField>(), getIntegerValue(), 0, 0, nullptr, text));
-	}
-	return CustomWidget::KeyDown(key);
+
 }
 
 void CustomTextField::Paste() {
@@ -449,7 +462,6 @@ void CustomTextField::KeyChar(const int charcode) {
 				caretPosition = c1;
 				sellen = 0;
 			}
-			//cursorblinkmode = true;
 			if (text != s) {
 				m_text = s;
 				UpdateOffset();
