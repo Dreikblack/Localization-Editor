@@ -427,6 +427,8 @@ void Application::updateSizes() {
 	editDialog->setPosition(witdh / 2 - editDialog->getWidth() / 2, height / 2 - editDialog->getHeight() / 2);
 	editDialog->updateModelPanel();
 	saveLabel->setPosition(witdh / 2 - saveLabel->getWidth() / 2, height / 2 - saveLabel->getHeight() / 2);
+	notSavedDialog->setPosition(witdh / 2 - notSavedDialog->getWidth() / 2, height / 2 - notSavedDialog->getHeight() / 2);
+	notSavedDialog->updateModelPanel();
 }
 
 void Application::loadLocalization(WString file) {
