@@ -78,6 +78,7 @@ void ControlsManager::setDefaultKeys() {
 	setAction(ACTION_EDIT_STRING, getDefaultKeys(ACTION_EDIT_STRING));
 	setAction(ACTION_DELETE_STRING, getDefaultKeys(ACTION_DELETE_STRING));
 	setAction(ACTION_CONTROL, getDefaultKeys(ACTION_CONTROL));
+	setAction(ACTION_SAVE_EDIT, getDefaultKeys(ACTION_SAVE_EDIT));
 }
 
 vector<KeyCode> ControlsManager::getDefaultKeys(ACTION_TYPE action) {
@@ -91,6 +92,7 @@ vector<KeyCode> ControlsManager::getDefaultKeys(ACTION_TYPE action) {
 	case ACTION_EDIT_STRING: return { KEY_E };
 	case ACTION_DELETE_STRING: return { KEY_D };
 	case ACTION_CONTROL: return { KEY_CONTROL };
+	case ACTION_SAVE_EDIT: return { KEY_SPACE,  KEY_ENTER };
 	}
 }
 

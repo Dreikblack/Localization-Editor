@@ -318,7 +318,9 @@ bool CustomTextArea::KeyDown(const KeyCode key) {
 			}
 		}
 	} else if (key == KEY_ENTER) {
-		KeyChar('\n');
+		if (!ctrlPressed) {
+			KeyChar('\n');
+		}
 	} else if (key == KEY_DELETE) {
 		del();
 	}
@@ -328,8 +330,27 @@ bool CustomTextArea::KeyDown(const KeyCode key) {
 	return CustomWidget::KeyDown(key);
 }
 
+void CustomTextArea::KeyChar(const int keychar) {
+	if (keychar == ' ' && ctrlPressed) {
+		return;
+	} else {
+		CustomTextField::KeyChar(keychar);
+	}
+}
+
 void CustomTextArea::SetText(const WString& text) {
 	CustomWidget::SetText(text);
+}
+
+void CustomTextArea::SetHidden(const bool hide) {
+	resetStates();
+	CustomTextField::SetHidden(hide);
+}
+
+void CustomTextArea::resetStates() {
+	ctrlPressed = false;
+	shiftPressed = false;
+	pressed = false;
 }
 
 void CustomTextArea::Draw(const int x, const int y, const int width, const int height) {

@@ -205,22 +205,28 @@ void Application::init() {
 		});
 	tableContainer->addWidget(table);
 	std::weak_ptr<CustomTable> tableWeak = table;
-	filterField->setValueChangeListener([tableWeak](Event event) {
+	std::weak_ptr<Container> tableContainerWeak = tableContainer;
+	filterField->setValueChangeListener([tableWeak, tableContainerWeak](Event event) {
 		auto table = tableWeak.lock();
+		auto tableContainer = tableContainerWeak.lock();
 		if (table) {
 			table->Redraw();
 			table->deselect();
+			tableContainer->resetScrollPosition();
 		}
 		return true;
 		});
 	std::weak_ptr<CustomTextField> filterFieldWeak = filterField;
 	filterResetButton->setListener
-	([tableWeak, filterFieldWeak](Event event) {
+	([tableWeak, filterFieldWeak, tableContainerWeak](Event event) {
 		filterFieldWeak.lock()->SetText("");
 		auto table = tableWeak.lock();
+		auto tableContainer = tableContainerWeak.lock();
 		if (table) {
-			table->Redraw();
+			tableContainer->Redraw();
 			table->deselect();
+			tableContainer->resetScrollPosition();
+			table->Redraw();
 		}
 		return true;
 		}
@@ -323,8 +329,6 @@ void Application::init() {
 	notSavedDialog = SaveDialog::create(width / 2 - notSavedDialogWidth / 2, height / 2 - notSavedDialogHeight / 2, notSavedDialogWidth, notSavedDialogHeight, ui->root);
 	notSavedDialog->SetHidden(true);
 	notSavedDialog->setSaveListener([this](Event event) {
-		isSaved = true;
-		saveFileButton->enable(false);
 		saveLocalizations();
 		return true;
 		});
@@ -369,6 +373,12 @@ void Application::init() {
 	controlsManager->setActionListener(ACTION_DELETE_STRING, Self(), [this](Event event) {
 		if (editDialog->GetHidden() && controlsManager->isActionKeyDown(ACTION_CONTROL)) {
 			removeStringButton->useListener();
+		}
+		});
+
+	controlsManager->setActionListener(ACTION_SAVE_EDIT, Self(), [this](Event event) {
+		if (!editDialog->GetHidden() && controlsManager->isActionKeyDown(ACTION_CONTROL)) {
+			editDialog->useOkListener();
 		}
 		});
 }
@@ -537,6 +547,8 @@ void Application::saveLocalizations() {
 	}
 	saveLabelTimer = UltraEngine::CreateTimer(HINT_MAX_TIME);
 	ListenEvent(EVENT_TIMERTICK, saveLabelTimer, saveLabelCallback);
+	saveFileButton->enable(false);
+	isSaved = true;
 }
 
 void Application::newFile() {

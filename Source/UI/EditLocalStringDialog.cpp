@@ -50,4 +50,9 @@ vector<WString> EditLocalStringDialog::getLocalString() const {
 	return { keyField->GetText(), contentField->GetText() };
 }
 
+void EditLocalStringDialog::SetHidden(const bool hide) {
+	contentField->resetStates();
+	Dialog::SetHidden(hide);
+}
+
  

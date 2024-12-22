@@ -18,5 +18,6 @@ public:
 	virtual bool Initialize(const int x, const int y, const int width, const int height, shared_ptr<Widget> parent);
 	void setLocalString(WString _key, WString _content);
 	vector<WString> getLocalString() const;
+	void SetHidden(const bool hide) override;
 };
 
