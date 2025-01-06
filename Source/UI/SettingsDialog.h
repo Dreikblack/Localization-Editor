@@ -12,6 +12,8 @@ protected:
 	SettingsDialog();
 	~SettingsDialog() override;
 public:
+	shared_ptr<CustomTextField> resolutiontWidthField;
+	shared_ptr<CustomTextField> resolutiontHeightField;
 	shared_ptr<CustomTextField> stringHeightField;
 	shared_ptr<CustomTextField> maxStringWidthField;
 	shared_ptr<CustomTextField> stringsCountField;

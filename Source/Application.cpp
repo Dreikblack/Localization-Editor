@@ -334,6 +334,26 @@ void Application::init() {
 		return true;
 		});
 
+	settingsDialog->resolutiontWidthField->setValueChangeListener([this](Event event) {
+		int value = settingsDialog->resolutiontWidthField->GetText().ToInt();
+		if (value > 1280 && settingsManager->windowWidth != value) {
+			settingsManager->windowWidth = value;
+			window->SetShape(window->GetPosition().x, window->GetPosition().y, value, window->GetSize().height);
+			settingsManager->saveConfig();
+		}
+		return true;
+		});
+
+	settingsDialog->resolutiontHeightField->setValueChangeListener([this](Event event) {
+		int value = settingsDialog->resolutiontHeightField->GetText().ToInt();
+		if (value > 720 && settingsManager->windowHeight != value) {
+			settingsManager->windowHeight = value;
+			window->SetShape(window->GetPosition().x, window->GetPosition().y, window->GetSize().width, value);
+			settingsManager->saveConfig();
+		}
+		return true;
+		});
+
 	saveLabel = CustomLabel::create(guiScale, guiScale, buttonWidth, guiScale, ui->root, TEXT_LEFT | TEXT_MIDDLE);
 	saveLabel->setLocalText("FilesSaved", true);
 	saveLabel->SetHidden(true);
@@ -470,6 +490,13 @@ void Application::updateSizes() {
 
 	settingsDialog->setPosition(witdh / 2 - settingsDialog->getWidth() / 2, height / 2 - settingsDialog->getHeight() / 2);
 	settingsDialog->updateModelPanel();
+
+	settingsDialog->resolutiontWidthField->SetText(window->GetSize().width);
+	settingsDialog->resolutiontHeightField->SetText(window->GetSize().height);
+	settingsManager->windowWidth = settingsDialog->resolutiontWidthField->GetText().ToInt();
+	settingsManager->windowHeight = settingsDialog->resolutiontHeightField->GetText().ToInt();
+
+	settingsManager->saveConfig();
 }
 
 void Application::loadLocalization(WString file) {

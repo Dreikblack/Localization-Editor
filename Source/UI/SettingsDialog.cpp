@@ -38,8 +38,36 @@ bool SettingsDialog::Initialize(const int x, const int y, const int width, const
 	float fontScale = (float)rowHeight / (float)settingsManager->fontHeight;
 	int buttonPositionX = indent;
 
-	auto buttonName = resourceManager->getLocalString("Settings.StringHeight");
-	auto buttonWidth = ui->GetTextWidth(ui->font, fontScale, buttonName, 1) - indent;
+	auto buttonName = resourceManager->getLocalString("Settings.Window.Width");
+	auto buttonWidth = ui->GetTextWidth(ui->font, fontScale, buttonName, 1);
+
+	auto resolutionWidthLabel = CustomLabel::create(buttonPositionX, rowId * (indent + rowHeight) + indent, buttonWidth, rowHeight, ui->root, TEXT_LEFT | TEXT_MIDDLE);
+	resolutionWidthLabel->SetText(buttonName);
+	addWidget(resolutionWidthLabel);
+	buttonPositionX = buttonPositionX + buttonWidth;
+
+	resolutiontWidthField = CustomTextField::create(buttonPositionX, rowId * (indent + rowHeight) + indent, guiScale, buttonHeight, ui->root, CUSTOM_TEXT_FIELD_INTEGER);
+	resolutiontWidthField->SetText(settingsManager->windowWidth);
+	addWidget(resolutiontWidthField);
+	rowId++;
+
+	buttonName = resourceManager->getLocalString("Settings.Window.Height");
+	buttonWidth = ui->GetTextWidth(ui->font, fontScale, buttonName, 1);
+	buttonPositionX = indent;
+
+	auto resolutionHeightLabel = CustomLabel::create(buttonPositionX, rowId * (indent + rowHeight) + indent, buttonWidth, rowHeight, ui->root, TEXT_LEFT | TEXT_MIDDLE);
+	resolutionHeightLabel->SetText(buttonName);
+	addWidget(resolutionHeightLabel);
+	buttonPositionX = buttonPositionX + buttonWidth;
+
+	resolutiontHeightField = CustomTextField::create(buttonPositionX, rowId * (indent + rowHeight) + indent, guiScale, buttonHeight, ui->root, CUSTOM_TEXT_FIELD_INTEGER);
+	resolutiontHeightField->SetText(settingsManager->windowHeight);
+	addWidget(resolutiontHeightField);
+	rowId++;
+
+	buttonName = resourceManager->getLocalString("Settings.StringHeight");
+	buttonWidth = ui->GetTextWidth(ui->font, fontScale, buttonName, 1) - indent;
+	buttonPositionX = indent;
 
 	auto stringHeightLabel = CustomLabel::create(buttonPositionX, rowId * (indent + rowHeight) + indent, buttonWidth, rowHeight, ui->root, TEXT_LEFT | TEXT_MIDDLE);
 	stringHeightLabel->SetText(buttonName);
