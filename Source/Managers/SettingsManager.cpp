@@ -36,10 +36,16 @@ void SettingsManager::init() {
 		windowWidth = configData[SETTINGS_WINDOW_WIDTH].get<int>();
 		windowHeight = configData[SETTINGS_WINDOW_HEIGHT].get<int>();
 		displayId = configData[SETTINGS_DISPLAY_ID].get<int>();
+		windowPosX = configData[SETTINGS_WINDOW_X].get<int>();
+		windowPosY = configData[SETTINGS_WINDOW_Y].get<int>();
+		isMaximized = configData[SETTINGS_IS_MAXIMIZED].get<bool>();
 	} catch (const std::exception& e) {
 		windowWidth = GetDisplays()[0]->GetSize().width * 0.5f;
 		windowHeight = GetDisplays()[0]->GetSize().height * 0.5f;
 		displayId = 0;
+		windowPosX = 0;
+		windowPosY = 0;
+		isMaximized = false;
 	}
 
 	try {
@@ -99,6 +105,8 @@ std::shared_ptr<SettingsManager> SettingsManager::getInstance() {
 }
 
 void SettingsManager::saveConfig() {
+	configData[SETTINGS_WINDOW_X] = windowPosX;
+	configData[SETTINGS_WINDOW_Y] = windowPosY;
 	configData[SETTINGS_WINDOW_WIDTH] = windowWidth;
 	configData[SETTINGS_WINDOW_HEIGHT] = windowHeight;
 	configData[SETTINGS_GUI_SCALE] = guiScale;
@@ -109,6 +117,7 @@ void SettingsManager::saveConfig() {
 	configData[SETTINGS_STRING_HEIGHT] = stringHeight;
 	configData[SETTINGS_MAX_STRING_WIDTH] = maxStringWidth;
 	configData[SETTINGS_STRINGS_COUNT] = stringsCount;
+	configData[SETTINGS_IS_MAXIMIZED] = isMaximized;
 	auto stream = WriteFile(configPath);
 	stream->WriteString(configData.dump(), false);
 	stream->Close();

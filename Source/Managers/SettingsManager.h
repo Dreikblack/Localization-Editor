@@ -20,6 +20,9 @@ public:
 	void saveConfig();
 	static std::shared_ptr<SettingsManager> getInstance();
 	static json getJson(WString configPath);
+	bool isMaximized = false;
+	int windowPosX = 0;
+	int windowPosY = 0;
 	int windowWidth = 1280;
 	int windowHeight = 720;
 	short displayId = 0;

@@ -3,6 +3,9 @@
 
 using namespace UltraEngine;
 
+const string SETTINGS_IS_MAXIMIZED = "isMaximized";
+const string SETTINGS_WINDOW_X = "windowX";
+const string SETTINGS_WINDOW_Y = "windowY";
 const string SETTINGS_WINDOW_WIDTH = "windowWidth";
 const string SETTINGS_WINDOW_HEIGHT = "windowHeight";
 const string SETTINGS_WINDOW_RESOLUTION = "windowResolution";

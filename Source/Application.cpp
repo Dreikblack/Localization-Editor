@@ -24,7 +24,18 @@ void Application::init() {
 
 	auto displays = GetDisplays();
 	int displayId = settingsManager->displayId < displays.size() ? settingsManager->displayId : 0;
-	window = CreateWindow(APPLICATION_NAME, 0, 0, settingsManager->windowWidth, settingsManager->windowHeight, displays[displayId], WINDOW_TITLEBAR | WINDOW_CENTER | WINDOW_RESIZABLE);
+	int windowPosX = settingsManager->windowPosX;
+	int windowPosY = settingsManager->windowPosY;
+	if (windowPosX == 0) {
+		windowPosX = displays[displayId]->GetSize().x / 2 - settingsManager->windowWidth / 2;
+	}
+	if (windowPosY == 0) {
+		windowPosY = displays[displayId]->GetSize().y / 2 - settingsManager->windowHeight / 2;
+	}
+	window = CreateWindow(APPLICATION_NAME, windowPosX, windowPosY, settingsManager->windowWidth, settingsManager->windowHeight, displays[displayId], WINDOW_TITLEBAR | WINDOW_RESIZABLE);
+	if (settingsManager->isMaximized) {
+		window->Maximize();
+	}
 	ui = CreateInterface(window);
 	ui->root->SetColor(0.3f, 0.3f, 0.3f);
 
@@ -464,9 +475,17 @@ void Application::loop() {
 			}
 			case EVENT_WINDOWSIZE:
 			{
+				settingsManager->isMaximized = window->Maximized();
 				updateSizes();
 				break;
 			}
+			case EVENT_WINDOWMOVE:
+			{
+				settingsManager->windowPosX = window->GetPosition().x;
+				settingsManager->windowPosY = window->GetPosition().y;
+				settingsManager->saveConfig();
+				break;
+			}		
 			}
 		}
 	}
