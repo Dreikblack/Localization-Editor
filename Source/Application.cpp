@@ -148,7 +148,8 @@ void Application::init() {
 	addStringButton->setListener([this](Event event) {
 		editDialog->setLocalString("Key", "Content");
 		editDialog->localStringId = -1;
-		editDialog->setLocalTextTitle("EditLocalStringDialog.Title.Add");
+		auto title = resourceManager->getLocalString("EditLocalStringDialog.Title.Add");
+		editDialog->setTitle(title + " - " + currentLocalization);
 		editDialog->SetHidden(false);
 		return true;
 		});
@@ -164,7 +165,8 @@ void Application::init() {
 			auto dataRow = table->getSelectedItem();
 			editDialog->setLocalString(dataRow[0], dataRow[1]);
 			editDialog->localStringId = event.data;
-			editDialog->setLocalTextTitle("EditLocalStringDialog.Title");
+			auto title = resourceManager->getLocalString("EditLocalStringDialog.Title");
+			editDialog->setTitle(title + " - " + currentLocalization);
 			editDialog->SetHidden(false);
 		}
 		return true;
@@ -185,6 +187,7 @@ void Application::init() {
 			}
 			setLocalizationToTable(currentLocalization);
 			isSaved = false;
+			updateWindowName();
 			saveFileButton->enable(true);
 		}
 		return true;
@@ -202,7 +205,8 @@ void Application::init() {
 			auto dataRow = table->getSelectedItem();
 			editDialog->setLocalString(dataRow[0], dataRow[1]);
 			editDialog->localStringId = event.data;
-			editDialog->setLocalTextTitle("EditLocalStringDialog.Title");
+			auto title = resourceManager->getLocalString("EditLocalStringDialog.Title");
+			editDialog->setTitle(title + " - " + currentLocalization);
 			editDialog->SetHidden(false);
 		}
 		return true;
@@ -292,6 +296,7 @@ void Application::init() {
 		}
 		saveFileButton->enable(true);
 		isSaved = false;
+		updateWindowName();
 		editDialog->SetHidden(true);
 		return true;
 		});
@@ -537,7 +542,7 @@ void Application::loadLocalization(WString file) {
 	} else {
 		langName = fileName.Left(foundDot);
 	}
-	window->SetText(APPLICATION_NAME + " - " + StripDir(file));
+	updateWindowName();
 	addStringButton->enable(true);
 	removeStringButton->enable(true);
 	editStringButton->enable(true);
@@ -626,6 +631,7 @@ void Application::saveLocalizations() {
 	ListenEvent(EVENT_TIMERTICK, saveLabelTimer, saveLabelCallback);
 	saveFileButton->enable(false);
 	isSaved = true;
+	updateWindowName();
 }
 
 void Application::newFile() {
@@ -651,6 +657,11 @@ void Application::switchLanguage() {
 		RunFile(APPLICATION_NAME + ".exe");
 		exit(0);
 	}
+}
+
+void Application::updateWindowName() {
+	WString asterix = isSaved ? "" : "*";
+	window->SetText(APPLICATION_NAME + " - " + settingsManager->lastFilePath + asterix);
 }
 
 bool Application::saveLabelCallback(const UltraEngine::Event& ev, shared_ptr<UltraEngine::Object> extra) {

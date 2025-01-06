@@ -53,6 +53,7 @@ protected:
 	void newFile();
 	void openFile();
 	void switchLanguage();
+	void updateWindowName();
 public:
 	static bool saveLabelCallback(const UltraEngine::Event& ev, shared_ptr<UltraEngine::Object> extra);
 	Application(Application const&) = delete;
