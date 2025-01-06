@@ -13,6 +13,7 @@
 #include "UI/CustomWidgets/CustomComboBox.h"
 #include "UI/CustomWidgets/CustomComboBox.cpp"
 #include "UI/SaveDialog.h"
+#include "UI/SettingsDialog.h"
 
 using namespace UltraEngine;
 
@@ -34,7 +35,7 @@ protected:
 	shared_ptr<CustomLabel> saveLabel;
 	shared_ptr<Timer> saveLabelTimer;
 	shared_ptr<SaveDialog> notSavedDialog;
-	shared_ptr<CustomComboBox<WString>> languageComboBox;
+	shared_ptr<SettingsDialog> settingsDialog;
 	int keyWidth;
 	//language - file path
 	map<WString, WString> languages;

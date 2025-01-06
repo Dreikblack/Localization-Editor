@@ -10,6 +10,8 @@ class EditLocalStringDialog : public Dialog
 protected:
 	shared_ptr<CustomTextField> keyField;
 	shared_ptr<CustomTextArea> contentField;
+	int minWidth;
+	int minHeight;
 	EditLocalStringDialog();
 	~EditLocalStringDialog() override;
 public:
@@ -19,5 +21,6 @@ public:
 	void setLocalString(WString _key, WString _content);
 	vector<WString> getLocalString() const;
 	void SetHidden(const bool hide) override;
+	void updateContentSize();
 };
 

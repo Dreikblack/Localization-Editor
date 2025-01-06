@@ -29,4 +29,7 @@ public:
 	bool isSystemCursor = false;
 	WString language;
 	WString lastFilePath;
+	int stringHeight = 32;
+	int maxStringWidth = 640;
+	int stringsCount = 8;
 };

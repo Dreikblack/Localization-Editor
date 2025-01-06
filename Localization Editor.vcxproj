@@ -153,6 +153,7 @@
     <ClCompile Include="Source\UI\CustomWidgets\TriangleButton.cpp" />
     <ClCompile Include="Source\UI\EditLocalStringDialog.cpp" />
     <ClCompile Include="Source\UI\SaveDialog.cpp" />
+    <ClCompile Include="Source\UI\SettingsDialog.cpp" />
     <ClCompile Include="Source\UltraEngine.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
@@ -197,6 +198,7 @@
     <ClInclude Include="Source\UI\CustomWidgets\TriangleButton.h" />
     <ClInclude Include="Source\UI\EditLocalStringDialog.h" />
     <ClInclude Include="Source\UI\SaveDialog.h" />
+    <ClInclude Include="Source\UI\SettingsDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Source\project.rc" />

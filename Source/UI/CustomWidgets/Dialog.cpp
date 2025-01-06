@@ -51,6 +51,7 @@ bool Dialog::Initialize(const int x, const int y, const int width, const int hei
 		int crossSize = buttonHeight;
 		crossButton = CustomButton::create(width - crossSize, 0, crossSize, crossSize, Self()->As<Widget>(), WIDGET_BACKGROUND);
 		crossButton->SetIcon(resourceManager->getGuiIcon("Cross"), PIXMAP_CENTER, (float)crossSize / (float)GUI_SCALE);
+		crossButton->SetColor(0.5, 0.5, 0.5);
 	}
 
 	buttonPanel->addButtons({ okButton, cancelButton });

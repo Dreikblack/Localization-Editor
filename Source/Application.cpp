@@ -96,15 +96,15 @@ void Application::init() {
 	int localizationComboBoxPositionY = 1;
 
 	buttonPositionX = buttonPositionX + guiScale * 2;
-	buttonName = resourceManager->getLocalString("LanguageSetting");
-	buttonWidth = ui->GetTextWidth(ui->font, fontScale, buttonName, 1) - indent;
-	auto languageLabel = CustomLabel::create(buttonPositionX, 1, buttonWidth, buttonHeight, ui->root, TEXT_LEFT | TEXT_MIDDLE);
-	languageLabel->SetText(buttonName);
 
-	buttonPositionX = buttonPositionX + buttonWidth;
-
-	int languageComboBoxPositionX = buttonPositionX;
-	int languageComboBoxPositionY = 1;
+	buttonName = resourceManager->getLocalString("Settings");
+	buttonWidth = ui->GetTextWidth(ui->font, fontScale, buttonName, 1) + indent;
+	shared_ptr<CustomButton> settingsButton = CustomButton::create(buttonPositionX, 1, buttonWidth, buttonHeight, ui->root, WIDGET_BORDER | WIDGET_BACKGROUND | WIDGET_BORDER_ROUNDED);
+	settingsButton->SetText(buttonName);
+	settingsButton->setListener([this](Event event) {
+		settingsDialog->SetHidden(false);
+		return true;
+		});
 
 	buttonPositionX = 1;
 	buttonName = resourceManager->getLocalString("KeyFilter");
@@ -232,41 +232,15 @@ void Application::init() {
 		}
 	);
 	int editDialogWidth = guiScale * 10;
-	int editDialogHeight = guiScale * 10;
+	int editDialogHeight = guiScale * 5;
 
 	//should be last for correct draw order
-	localizationComboBox = CustomComboBox<WString>::create(localizationComboBoxPositionX, languageComboBoxPositionY, guiScale * 2, buttonHeight, ui->root);
+	localizationComboBox = CustomComboBox<WString>::create(localizationComboBoxPositionX, localizationComboBoxPositionY, guiScale * 2, buttonHeight, ui->root);
 	localizationComboBox->Disable();
 	localizationComboBox->setListener([this]([[maybe_unused]] Event const& event) {
 		auto language = localizationComboBox->getSelectedItem().first;
 		if (language != currentLocalization) {
 			setLocalizationToTable(language);
-		}
-		return true;
-		});
-
-	//should be last for correct draw order
-	languageComboBox = CustomComboBox<WString>::create(languageComboBoxPositionX, localizationComboBoxPositionY, guiScale * 2, buttonHeight, ui->root);
-	std::weak_ptr<CustomComboBox<WString>> languageComboBoxWeak = languageComboBox;
-	vector<std::pair<WString, WString>> localLanguages;
-	std::pair<WString, WString> currentLanguage;
-	for (auto& local : ResourceManager::getInstance()->getAvaiableLanguages()) {
-		localLanguages.push_back(std::make_pair(local, local));
-		if (local == settingsManager->language) {
-			currentLanguage = std::make_pair(local, local);
-		}
-	}
-	languageComboBox->addItems(localLanguages);
-	languageComboBox->selectItem(currentLanguage);
-	languageComboBox->setListener([this]([[maybe_unused]] Event const& event) {
-		if (!isSaved) {
-			notSavedDialog->setFunctionListener([this](Event event) {
-				switchLanguage();
-				return true;
-				});
-			notSavedDialog->SetHidden(false);
-		} else {
-			switchLanguage();
 		}
 		return true;
 		});
@@ -311,6 +285,55 @@ void Application::init() {
 		return true;
 		});
 
+	settingsDialog = SettingsDialog::create(width / 2 - editDialogWidth / 2, height / 2 - editDialogHeight / 2, editDialogWidth, editDialogHeight, ui->root);
+	settingsDialog->SetHidden(true);
+	settingsDialog->setOkListener([this]([[maybe_unused]] Event const& event) {
+		return true;
+		});
+
+	settingsDialog->languageComboBox->setListener([this]([[maybe_unused]] Event const& event) {
+		if (!isSaved) {
+			notSavedDialog->setFunctionListener([this](Event event) {
+				switchLanguage();
+				return true;
+				});
+			notSavedDialog->SetHidden(false);
+		} else {
+			switchLanguage();
+		}
+		return true;
+		});
+
+	settingsDialog->stringHeightField->setValueChangeListener([this](Event event) {
+		int value = settingsDialog->stringHeightField->GetText().ToInt();
+		if (value > 5 && settingsManager->stringHeight != value) {
+			settingsManager->stringHeight = value;
+			editDialog->updateContentSize();
+			settingsManager->saveConfig();
+		}
+		return true;
+		});
+
+	settingsDialog->maxStringWidthField->setValueChangeListener([this](Event event) {
+		int value = settingsDialog->maxStringWidthField->GetText().ToInt();
+		if (value > 15 && settingsManager->maxStringWidth != value) {
+			settingsManager->maxStringWidth = value;
+			editDialog->updateContentSize();
+			settingsManager->saveConfig();
+		}
+		return true;
+		});
+
+	settingsDialog->stringsCountField->setValueChangeListener([this](Event event) {
+		int value = settingsDialog->stringsCountField->GetText().ToInt();
+		if (value > 0 && settingsManager->stringsCount != value) {
+			settingsManager->stringsCount = value;
+			editDialog->updateContentSize();
+			settingsManager->saveConfig();
+		}
+		return true;
+		});
+
 	saveLabel = CustomLabel::create(guiScale, guiScale, buttonWidth, guiScale, ui->root, TEXT_LEFT | TEXT_MIDDLE);
 	saveLabel->setLocalText("FilesSaved", true);
 	saveLabel->SetHidden(true);
@@ -336,6 +359,8 @@ void Application::init() {
 	if (!settingsManager->lastFilePath.empty()) {
 		loadLocalization(settingsManager->lastFilePath);
 	}
+
+	editDialog->updateContentSize();
 
 	std::weak_ptr<CustomButton> newFileButtonWeak = newFileButton;
 	controlsManager->setActionListener(ACTION_NEW_FILE, Self(), [this, newFileButtonWeak](Event event) {
@@ -431,14 +456,20 @@ void Application::updateSizes() {
 	int witdh = ui->root->ClientSize().width;
 	int height = ui->root->ClientSize().height;
 	int indent = settingsManager->guiScale / 8;
+
 	table->setColumnWidthes({ keyWidth, witdh - keyWidth - indent });
 	tableContainer->setSize(witdh - indent, height - tableContainer->getPositionY());
 	tableContainer->updateInnerContainerSize();
+
 	editDialog->setPosition(witdh / 2 - editDialog->getWidth() / 2, height / 2 - editDialog->getHeight() / 2);
 	editDialog->updateModelPanel();
+
 	saveLabel->setPosition(witdh / 2 - saveLabel->getWidth() / 2, height / 2 - saveLabel->getHeight() / 2);
 	notSavedDialog->setPosition(witdh / 2 - notSavedDialog->getWidth() / 2, height / 2 - notSavedDialog->getHeight() / 2);
 	notSavedDialog->updateModelPanel();
+
+	settingsDialog->setPosition(witdh / 2 - settingsDialog->getWidth() / 2, height / 2 - settingsDialog->getHeight() / 2);
+	settingsDialog->updateModelPanel();
 }
 
 void Application::loadLocalization(WString file) {
@@ -567,7 +598,7 @@ void Application::openFile() {
 }
 
 void Application::switchLanguage() {
-	auto language = languageComboBox->getSelectedItem().first;
+	auto language = settingsDialog->languageComboBox->getSelectedItem().first;
 	if (language != settingsManager->language) {
 		settingsManager->language = language;
 		settingsManager->saveConfig();

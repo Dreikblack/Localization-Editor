@@ -27,4 +27,5 @@ public:
 	void SetText(const WString& text) override;
 	void SetHidden(const bool hide) override;
 	void resetStates();
+	void setStringHeight(int newStringHeight);
 };

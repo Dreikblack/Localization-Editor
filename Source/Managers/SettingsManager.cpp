@@ -61,6 +61,16 @@ void SettingsManager::init() {
 	}
 
 	try {
+		stringHeight = configData[SETTINGS_STRING_HEIGHT].get<int>();
+		maxStringWidth = configData[SETTINGS_MAX_STRING_WIDTH].get<int>();
+		stringsCount = configData[SETTINGS_STRINGS_COUNT].get<int>();
+	} catch (const std::exception& e) {
+		stringHeight = 32;
+		maxStringWidth = 640;
+		stringsCount = 8;
+	}
+
+	try {
 		lastFilePath = configData[SETTINGS_LAST_PATH].get<string>();
 	} catch (const std::exception& e) {
 		lastFilePath = "";
@@ -96,6 +106,9 @@ void SettingsManager::saveConfig() {
 	configData[SETTINGS_DISPLAY_ID] = displayId;
 	configData[SETTINGS_SOUND_EFFECT_VOLUME] = effectVolume;
 	configData[SETTINGS_LAST_PATH] = lastFilePath.ToUtf8String();
+	configData[SETTINGS_STRING_HEIGHT] = stringHeight;
+	configData[SETTINGS_MAX_STRING_WIDTH] = maxStringWidth;
+	configData[SETTINGS_STRINGS_COUNT] = stringsCount;
 	auto stream = WriteFile(configPath);
 	stream->WriteString(configData.dump(), false);
 	stream->Close();

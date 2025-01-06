@@ -40,7 +40,7 @@ int CustomListBox<Value>::getItemHeight() {
 	if (!GetInterface()) {
 		return guiScale / 2;
 	}
-	return Round(float(GetInterface()->GetFontHeight(GetInterface()->font, fontscale, fontweight)) * fontscale);
+	return Round(float(GetInterface()->GetFontHeight(GetInterface()->font, fontscale, fontweight)));
 }
 
 template<typename Value>

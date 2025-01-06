@@ -31,11 +31,15 @@ shared_ptr<CustomTextArea> CustomTextArea::create(const int x, const int y, cons
 
 bool CustomTextArea::Initialize(const int x, const int y, const int width, const int height, const int _stringHeight, shared_ptr<Widget> parent, const int style, WString text) {
 	bool flag = CustomWidget::Initialize(text, x, y, width, height, parent, style);
-	stringHeight = _stringHeight;
-	float fonstScale = (float)stringHeight / (float)SettingsManager::getInstance()->fontHeight;
-	SetFontScale(fonstScale);
+	setStringHeight(_stringHeight);
 	textIndent = Round((float)indent / 2.0f);
 	return flag;
+}
+
+void CustomTextArea::setStringHeight(int newStringHeight) {
+	stringHeight = newStringHeight;
+	float fonstScale = (float)stringHeight / (float)SettingsManager::getInstance()->fontHeight;
+	SetFontScale(fonstScale);
 }
 
 int CustomTextArea::GetCharAtPosition(const iVec2 position, const bool clickOnChar) {
