@@ -436,3 +436,20 @@ void CustomTextArea::Draw(const int x, const int y, const int width, const int h
 	}
 	AddBlock(iVec2(0), size, borderColor, true, cornerradius);
 }
+
+void CustomTextArea::Paste() {
+	if ((CUSTOM_TEXT_FIELD_READONLY & style) != 0) {
+		return;
+	}
+	if (sellen != 0) {
+		KeyChar('\b');
+	}
+	auto text = GetClipboardText();
+	if (text == "") {
+		return;
+	}
+	WString left = this->text.Left(caretPosition);
+	WString right = this->text.Right(this->text.size() - caretPosition);
+	caretPosition += text.size();
+	SetText(left + text + right);
+}

@@ -150,7 +150,7 @@ void ButtonPanel::draw() {
 	int count = 0;
 	int totalButtonLength = 0;//count * (getButtonLength() + indent) - indent;
 	for (auto& button : buttonList) {
-		if (button->GetHidden()) {
+		if (button->GetHidden(false)) {
 			continue;
 		}
 		//iVec2 position(isVertical ? 0 : count * (getButtonLength() + indent), !isVertical ? 0 : count * (getButtonLength() + indent));

@@ -22,6 +22,7 @@ protected:
 	bool KeyDown(const KeyCode key) override;
 	void KeyChar(const int keychar) override;
 	void Draw(const int x, const int y, const int width, const int height) override;
+	void Paste() override;
 public:
 	static shared_ptr<CustomTextArea> create(const int x, const int y, const int width, const int height, const int _stringHeight, shared_ptr<Widget> parent, const int style = 0, WString text = "");
 	void SetText(const WString& text) override;

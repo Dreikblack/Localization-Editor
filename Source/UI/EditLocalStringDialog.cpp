@@ -93,6 +93,8 @@ void EditLocalStringDialog::updateContentSize() {
 	}
 	container->updateInnerContainerSize();
 	buttonPanel->setPositionY(getHeight() - buttonHeight - indent);
+	buttonPanel->updateContentPosition();
+	buttonPanel->draw();
 	keyField->setWidth(getWidth() - 2 * indent);
 }
 
