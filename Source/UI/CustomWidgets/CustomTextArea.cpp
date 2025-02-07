@@ -7,7 +7,6 @@ CustomTextArea::CustomTextArea() {
 	doubleClickRange = 1;
 	pressed = false;
 	offsetX = 0;
-	x = 0;
 	sellen = 0;
 	caretPosition = 0;
 	textIndent = 4;
@@ -107,7 +106,7 @@ iVec2 CustomTextArea::GetCaretCoord(const int caret) {
 }
 
 void CustomTextArea::MouseDown(const MouseButton button, const int x_, const int y) {
-	lastMousePosition.x = x;
+	lastMousePosition.x = x_;
 	lastMousePosition.y = y;
 	int x = x_;
 	if (button == MOUSE_LEFT) {
@@ -124,6 +123,7 @@ void CustomTextArea::MouseDown(const MouseButton button, const int x_, const int
 		} else {
 			sellen = 0;
 		}
+		resetCursorBlinking();
 		Redraw();
 	}
 }
@@ -255,6 +255,7 @@ void CustomTextArea::UpdateOffset() {
 	} else {
 		offsetX = 0;
 	}
+	resetCursorBlinking();
 }
 
 bool CustomTextArea::KeyDown(const KeyCode key) {
@@ -321,6 +322,40 @@ bool CustomTextArea::KeyDown(const KeyCode key) {
 				totalCharCount = totalCharCount + lines[i].size() + 1;
 			}
 		}
+	} else if (key == KEY_HOME) {
+		vector<WString> lines = text.Split("\n");
+		if (lines.size() == 1) {
+			caretPosition = 0;
+		} else {
+			int totalCharCount = 0;
+			for (int i = 0; i < (lines.size()); i++) {
+				if (caretPosition < (totalCharCount + lines[i].size() + 1)) {
+					caretPosition = totalCharCount;
+					sellen = 0;
+					break;
+				}
+				totalCharCount = totalCharCount + lines[i].size() + 1;
+			}
+		}	
+		UpdateOffset();
+		Redraw();
+	} else if (key == KEY_END) {
+		vector<WString> lines = text.Split("\n");
+		if (lines.size() == 1) {
+			caretPosition = text.size();
+		} else {
+			int totalCharCount = 0;
+			for (int i = 0; i < (lines.size()); i++) {
+				if (caretPosition < (totalCharCount + lines[i].size() + 1)) {
+					caretPosition = totalCharCount + lines[i].size();
+					sellen = 0;
+					break;
+				}
+				totalCharCount = totalCharCount + lines[i].size() + 1;
+			}
+		}
+		UpdateOffset();
+		Redraw();
 	} else if (key == KEY_ENTER) {
 		if (!ctrlPressed) {
 			KeyChar('\n');

@@ -7,7 +7,6 @@ CustomTextField::CustomTextField() {
 	doubleClickRange = 1;
 	pressed = false;
 	offsetX = 0;
-	x = 0;
 	sellen = 0;
 	caretPosition = 0;
 	textIndent = 4;
@@ -90,7 +89,7 @@ int CustomTextField::GetCaretCoord(const int caret) {
 }
 
 void CustomTextField::MouseDown(const MouseButton button, const int x_, const int y) {
-	lastMousePosition.x = x;
+	lastMousePosition.x = x_;
 	lastMousePosition.y = y;
 	int x = x_;
 	if (button == MOUSE_LEFT) {
@@ -107,6 +106,7 @@ void CustomTextField::MouseDown(const MouseButton button, const int x_, const in
 		} else {
 			sellen = 0;
 		}
+		resetCursorBlinking();
 		Redraw();
 	}
 }
@@ -243,6 +243,7 @@ void CustomTextField::UpdateOffset() {
 	} else {
 		offsetX = 0;
 	}
+	resetCursorBlinking();
 }
 
 void CustomTextField::fixResult() {
@@ -266,9 +267,19 @@ bool CustomTextField::drawCallback(const UltraEngine::Event& ev, shared_ptr<Ultr
 	return false;
 }
 
-void CustomTextField::GainFocus() {
+
+void CustomTextField::resetCursorBlinking() {
+	doHideCursor = false;
+	if (timer) {
+		timer->Stop();
+		timer.reset();
+	}
 	timer = UltraEngine::CreateTimer(500);
 	ListenEvent(EVENT_TIMERTICK, timer, drawCallback, Self());
+}
+
+void CustomTextField::GainFocus() {
+	resetCursorBlinking();
 	if (!hasWidgetStyle(CUSTOM_TEXT_FIELD_READONLY) && focusListener) {
 		focusListener(Event(EVENT_NONE, Self()->As<CustomTextField>(), getIntegerValue(), 0, 0, nullptr, text));
 	}
@@ -322,6 +333,14 @@ bool CustomTextField::KeyDown(const KeyCode key) {
 	} else if (key == KEY_RIGHT or key == KEY_DOWN) {
 		moveCaretRight();
 		wasSymbolTyped = false;
+	} else if (key == KEY_HOME) {
+		caretPosition = 0;
+		UpdateOffset();
+		Redraw();
+	} else if (key == KEY_END) {
+		caretPosition = text.size();
+		UpdateOffset();
+		Redraw();
 	} else if (key == KEY_ENTER) {
 		sellen = 0;
 		offsetX = 0;

@@ -1,6 +1,6 @@
 #pragma once
 #include "UltraEngine.h"
-#include "CustomButton.h"
+#include "CustomWidget.h"
 
 
 enum CustomTextFieldStyle
@@ -16,8 +16,13 @@ protected:
 	bool ctrlPressed;
 	bool pressed;
 	iVec2 lastMousePosition;
-	int textIndent, caretPosition, sellen, x, offsetX;
-	bool hoverState;
+	int textIndent;
+	//cursor
+	int caretPosition;
+	//selection
+	int sellen;
+	//when next not fitting widget size
+	int offsetX;
 	bool shiftPressed;
 	int doubleClickRange;
 	WString oldText;
@@ -52,6 +57,7 @@ protected:
 	void moveCaretLeft();
 	void moveCaretRight();
 	void del();
+	void resetCursorBlinking();
 public:
 	bool doHideCursor;
 	int minValue = 0;
