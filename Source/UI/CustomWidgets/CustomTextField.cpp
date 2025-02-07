@@ -200,7 +200,6 @@ void CustomTextField::MouseMove(const int x_, const int y) {
 		int currentcaretpos = caretPosition;
 		int prevcaretpos = caretPosition + sellen;
 		caretPosition = GetCharAtPosition(x, false);
-		int oldsellen = sellen;
 		if (caretPosition != currentcaretpos) {
 			sellen = prevcaretpos - caretPosition;
 			Redraw();

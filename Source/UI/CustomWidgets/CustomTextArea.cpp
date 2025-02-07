@@ -54,8 +54,8 @@ int CustomTextArea::GetCharAtPosition(const iVec2 position, const bool clickOnCh
 	} else if (lineIndex >= lines.size()) {
 		lineIndex = lines.size() - 1;
 	}
-	int count = text.length();
 	int lastCharWidth = 0;
+	//total char index
 	int lineBegin = 0;
 	for (int i = 0; i < lineIndex; i++) {
 		lineBegin = lineBegin + lines[i].size() + 1;
@@ -63,6 +63,7 @@ int CustomTextArea::GetCharAtPosition(const iVec2 position, const bool clickOnCh
 	if (lines[lineIndex].empty()) {
 		return lineBegin;
 	}
+	int count = lineBegin + lines[lineIndex].size();
 	for (int n = lineBegin; n < count; ++n) {
 		auto c = text.Mid(n, 1);
 		lastCharWidth = GetInterface()->GetTextWidth(GetInterface()->font, fontscale, c, fontweight);
@@ -212,7 +213,6 @@ void CustomTextArea::MouseMove(const int x_, const int y) {
 		int currentcaretpos = caretPosition;
 		int prevcaretpos = caretPosition + sellen;
 		caretPosition = GetCharAtPosition(iVec2(x, y), false);
-		int oldsellen = sellen;
 		if (caretPosition != currentcaretpos) {
 			sellen = prevcaretpos - caretPosition;
 			Redraw();
@@ -285,16 +285,18 @@ bool CustomTextArea::KeyDown(const KeyCode key) {
 			int totalCharCount = lines[0].size() + 1;
 			for (int i = 1; i < lines.size(); i++) {
 				if (caretPosition < (totalCharCount + lines[i].size() + 1)) {
+					//char index in current line
 					int lineCaretPos = caretPosition - totalCharCount;
-					if (lines[i - 1].size() >= lineCaretPos) {
-						caretPosition = totalCharCount - lines[i - 1].size() - 1 + lineCaretPos;
+					auto currentLineText = text.Mid(totalCharCount, lineCaretPos);
+					//width til char
+					auto currentLineWidth = GetInterface()->GetTextWidth(GetInterface()->font, fontscale, currentLineText, fontweight);
+					int prevCaretPosition = caretPosition + sellen;
+					caretPosition = GetCharAtPosition(iVec2(currentLineWidth, stringHeight * i - stringHeight / 2), true);
+					if (shiftPressed) {
+						sellen = prevCaretPosition - caretPosition;
 					} else {
-						caretPosition = totalCharCount - 1;
+						sellen = 0;
 					}
-					if (caretPosition < 0) {
-						caretPosition = 0;
-					}
-					sellen = 0;
 					UpdateOffset();
 					Redraw();
 					break;
@@ -308,13 +310,18 @@ bool CustomTextArea::KeyDown(const KeyCode key) {
 			int totalCharCount = 0;
 			for (int i = 0; i < (lines.size() - 1); i++) {
 				if (caretPosition < (totalCharCount + lines[i].size() + 1)) {
+					//char index in current line
 					int lineCaretPos = caretPosition - totalCharCount;
-					if (lines[i + 1].size() >= lineCaretPos) {
-						caretPosition = totalCharCount + lines[i].size() + 1 + lineCaretPos;
+					auto currentLineText = text.Mid(totalCharCount, lineCaretPos);
+					//width til char
+					auto currentLineWidth = GetInterface()->GetTextWidth(GetInterface()->font, fontscale, currentLineText, fontweight);
+					int prevCaretPosition = caretPosition + sellen;
+					caretPosition = GetCharAtPosition(iVec2(currentLineWidth, stringHeight * (i + 1) + stringHeight / 2), true);				
+					if (shiftPressed) {
+						sellen = prevCaretPosition - caretPosition;
 					} else {
-						caretPosition = totalCharCount + lines[i].size() + 1 + lines[i + 1].size();
+						sellen = 0;
 					}
-					sellen = 0;
 					UpdateOffset();
 					Redraw();
 					break;
@@ -420,7 +427,7 @@ void CustomTextArea::Draw(const int x, const int y, const int width, const int h
 				//selection starts on this line and ends later on another one
 				} else {
 					auto caretCoord1 = GetCaretCoord(c1);
-					int fw = gui->GetTextWidth(gui->font, fontscale, lines[i].Right(lines[i].size() - c1 - totalCharCount), fontweight);
+					int fw = gui->GetTextWidth(gui->font, fontscale, lines[i].Right(lines[i].size() - (c1 - totalCharCount)), fontweight);
 					AddBlock(iVec2(caretCoord1.x, caretCoord1.y), iVec2(fw, stringHeight), color[WIDGETCOLOR_RAISED], false);
 					doStartSelection = true;
 

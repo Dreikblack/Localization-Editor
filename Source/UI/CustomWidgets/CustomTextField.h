@@ -19,7 +19,7 @@ protected:
 	int textIndent;
 	//cursor
 	int caretPosition;
-	//selection
+	//selection - how much symbols from carret. Right to carret is negative value
 	int sellen;
 	//when next not fitting widget size
 	int offsetX;
