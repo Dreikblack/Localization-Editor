@@ -587,49 +587,51 @@ void CustomTextArea::doWarpText() {
 	auto width = getWidth();
 	if (warpMode == WARP_NONE) {
 		return;
-	} else if (warpMode == WARP_WORD) {
-		bool doWarp = false;
-		vector<WString> lines = Split(text, "\n");
-		int totalCharCount = 0;
-		for (int i = 0; i < lines.size(); i++) {
-			auto currentLineWidth = GetInterface()->GetTextWidth(GetInterface()->font, fontscale, lines[i], fontweight);
-			if (currentLineWidth > (width - textIndent * 2)) {
-				vector<WString> words = Split(lines[i], " ");
-				if (words.size() > 1) {
-					auto lastWord = words[words.size() - 1].empty() ? lines[i].Right(1) : words[words.size() - 1];
-					if (i < (lines.size() - 1)) {
-						if (lines[i + 1].empty()) {
-							lines[i + 1] = lastWord;
-						} else {
-							lines[i + 1] = lastWord == " " || lines[i + 1].Left(1) == " " ? lastWord + lines[i + 1] : lastWord + " " + lines[i + 1];
-						}
-						lines[i] = lines[i].Left(lines[i].size() - lastWord.size());
-						doWarp = true;
-						break;
+	}
+	bool doWarp = false;
+	vector<WString> lines = Split(text, "\n");
+	int totalCharCount = 0;
+	for (int i = 0; i < lines.size(); i++) {
+		auto currentLineWidth = GetInterface()->GetTextWidth(GetInterface()->font, fontscale, lines[i], fontweight);
+		if (currentLineWidth > (width - textIndent * 2)) {
+			vector<WString> words;
+			if (warpMode == WARP_WORD) {
+				words = Split(lines[i], " ");
+			}
+			if (words.size() > 1 || warpMode == WARP_CHAR) {
+				auto lastWord = warpMode == WARP_CHAR || words[words.size() - 1].empty() ? lines[i].Right(1) : words[words.size() - 1];
+				if (i < (lines.size() - 1)) {
+					if (lines[i + 1].empty()) {
+						lines[i + 1] = lastWord;
 					} else {
-						lines[i] = lines[i].Left(lines[i].size() - lastWord.size());
-						lines.push_back(lastWord);
-						doWarp = true;
-						break;
+						lines[i + 1] = lastWord == " " || lines[i + 1].Left(1) == " " || warpMode == WARP_CHAR ? lastWord + lines[i + 1] : lastWord + " " + lines[i + 1];
 					}
+					lines[i] = lines[i].Left(lines[i].size() - lastWord.size());
+					doWarp = true;
+					break;
 				} else {
-					doWarp = false;
+					lines[i] = lines[i].Left(lines[i].size() - lastWord.size());
+					lines.push_back(lastWord);
+					doWarp = true;
 					break;
 				}
-			}				
-			totalCharCount = totalCharCount + (int)lines[i].size() + 1;
-		}
-		if (doWarp) {
-			WString newText = "";
-			for (int i = 0; i < lines.size(); i++) {
-				newText = newText + lines[i];
-				if (i < (lines.size() - 1)) {
-					newText = newText + "\n";
-				}
+			} else {
+				doWarp = false;
+				break;
 			}
-			m_text = newText;
-			doWarpText();
 		}
+		totalCharCount = totalCharCount + (int)lines[i].size() + 1;
 	}
+	if (doWarp) {
+		WString newText = "";
+		for (int i = 0; i < lines.size(); i++) {
+			newText = newText + lines[i];
+			if (i < (lines.size() - 1)) {
+				newText = newText + "\n";
+			}
+		}
+		m_text = newText;
+		doWarpText();
+	}	
 	return;
 }
