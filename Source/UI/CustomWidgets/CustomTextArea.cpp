@@ -42,6 +42,24 @@ void CustomTextArea::setStringHeight(int newStringHeight) {
 	SetFontScale(fonstScale);
 }
 
+static vector<WString> Split(WString const& text, WString const& delimiter) {
+	WString tempText = text;
+	vector<WString> result;
+	while (!tempText.empty()) {
+		int delimiterIndex = tempText.Find(delimiter);
+		if (delimiterIndex == -1) {
+			result.push_back(tempText);
+			break;
+		}
+		result.push_back(tempText.Left(delimiterIndex));
+		tempText = tempText.Right((int)tempText.length() - delimiterIndex - (int)delimiter.length());
+		if (tempText.empty() && delimiterIndex != -1) {
+			result.push_back("");
+		}
+	}
+	return result;
+}
+
 int CustomTextArea::GetCharAtPosition(iVec2 position, const bool clickOnChar) {
 	auto text = this->text;
 	if ((style & CUSTOM_TEXT_FIELD_PASSWORD) != 0) text = wstring(this->text.size(), L'•');
@@ -53,7 +71,7 @@ int CustomTextArea::GetCharAtPosition(iVec2 position, const bool clickOnChar) {
 	if (position.y < 0) {
 		position.y = 0;
 	}
-	vector<WString> lines = text.Split("\n");
+	vector<WString> lines = Split(text, "\n");
 	int lineIndex = position.y / stringHeight;
 	if (lines.empty()) {
 		lineIndex = 0;
@@ -96,7 +114,7 @@ iVec2 CustomTextArea::GetCaretCoord(const int caret) {
 	int indentX = textIndent;
 	int count = Min((int)caret, (int)text.length());
 	auto tempText = text.Replace("\r", "");
-	vector<WString> lines = text.Split("\n");
+	vector<WString> lines = Split(text, "\n");
 	int currentCount = 0;
 	int lineIndex = 0;
 	for (auto& line : lines) {
@@ -267,11 +285,7 @@ void CustomTextArea::UpdateOffset() {
 	} else {
 		offsetX = 0;
 	}
-	vector<WString> lines = text.Split("\n");
-	if (!text.empty() && text[text.length() - 1] == '\n') {
-		//for new line made with Enter
-		lines.push_back(WString(""));
-	}
+	vector<WString> lines = Split(text, "\n");
 	int totalCharCount = 0;
 	if (lines.size() * stringHeight > height) {
 		for (int i = 0; i < lines.size(); i++) {
@@ -331,7 +345,7 @@ bool CustomTextArea::KeyDown(const KeyCode key) {
 		moveCaretRight();
 		wasSymbolTyped = false;
 	} else if (key == KEY_UP) {
-		vector<WString> lines = text.Split("\n");
+		vector<WString> lines = Split(text, "\n");
 		if (lines.size() > 1 && caretPosition > lines[0].size()) {
 			int totalCharCount = lines[0].size() + 1;
 			for (int i = 1; i < lines.size(); i++) {
@@ -356,7 +370,7 @@ bool CustomTextArea::KeyDown(const KeyCode key) {
 			}
 		}
 	} else if (key == KEY_DOWN) {
-		vector<WString> lines = text.Split("\n");
+		vector<WString> lines = Split(text, "\n");
 		if (lines.size() > 1) {
 			int totalCharCount = 0;
 			for (int i = 0; i < (lines.size() - 1); i++) {
@@ -381,7 +395,7 @@ bool CustomTextArea::KeyDown(const KeyCode key) {
 			}
 		}
 	} else if (key == KEY_HOME) {
-		vector<WString> lines = text.Split("\n");
+		vector<WString> lines = Split(text, "\n");
 		if (lines.size() == 1) {
 			caretPosition = 0;
 		} else {
@@ -398,7 +412,7 @@ bool CustomTextArea::KeyDown(const KeyCode key) {
 		UpdateOffset();
 		Redraw();
 	} else if (key == KEY_END) {
-		vector<WString> lines = text.Split("\n");
+		vector<WString> lines = Split(text, "\n");
 		if (lines.size() == 1) {
 			caretPosition = text.size();
 		} else {
@@ -468,7 +482,7 @@ void CustomTextArea::Draw(const int x, const int y, const int width, const int h
 		int c1 = Min(caretPosition, caretPosition + sellen);
 		int c2 = Max(caretPosition, caretPosition + sellen);
 		bool doStartSelection = false;
-		vector<WString> lines = text.Split("\n");
+		vector<WString> lines = Split(text, "\n");
 		int totalCharCount = 0;
 		for (int i = 0; i < lines.size(); i++) {
 			if (!doStartSelection && c1 > totalCharCount + lines[i].size()) {
