@@ -189,7 +189,9 @@ void CustomTextField::TripleClick(const MouseButton button, const int x, const i
 }
 
 void CustomTextField::MouseUp(const MouseButton button, const int x, const int y) {
-	if (button == MOUSE_LEFT) pressed = false;
+	if (button == MOUSE_LEFT) {
+		pressed = false;
+	}
 }
 
 void CustomTextField::MouseMove(const int x_, const int y) {
@@ -213,7 +215,6 @@ void CustomTextField::UpdateOffset() {
 	int width = GetSize().x;
 	auto c = text.Right(1);
 	auto font = GetInterface()->font;
-	int cw = GetInterface()->GetTextWidth(font, fontscale, c, fontweight);
 	int tw = GetInterface()->GetTextWidth(font, fontscale, text, fontweight);
 	if (tw + textIndent * 2 > width) {
 		auto fragment = GetSelectedText();

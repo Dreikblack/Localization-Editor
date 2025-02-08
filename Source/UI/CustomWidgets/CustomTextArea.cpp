@@ -17,6 +17,7 @@ CustomTextArea::CustomTextArea() {
 	oldText = "";
 	doTriggerValueChangeOnType = false;
 	stringHeight = 16;
+	offsetY = 0;
 }
 
 
@@ -41,11 +42,17 @@ void CustomTextArea::setStringHeight(int newStringHeight) {
 	SetFontScale(fonstScale);
 }
 
-int CustomTextArea::GetCharAtPosition(const iVec2 position, const bool clickOnChar) {
+int CustomTextArea::GetCharAtPosition(iVec2 position, const bool clickOnChar) {
 	auto text = this->text;
 	if ((style & CUSTOM_TEXT_FIELD_PASSWORD) != 0) text = wstring(this->text.size(), L'•');
 
 	float indentX = textIndent;
+	if (position.x < 0) {
+		position.x = 0;
+	}
+	if (position.y < 0) {
+		position.y = 0;
+	}
 	vector<WString> lines = text.Split("\n");
 	int lineIndex = position.y / stringHeight;
 	if (lines.empty()) {
@@ -106,12 +113,14 @@ iVec2 CustomTextArea::GetCaretCoord(const int caret) {
 	return iVec2(indentX, lineIndex * stringHeight);
 }
 
-void CustomTextArea::MouseDown(const MouseButton button, const int x_, const int y) {
-	lastMousePosition.x = x_;
-	lastMousePosition.y = y;
-	int x = x_;
+void CustomTextArea::MouseDown(const MouseButton button, const int _x, const int _y) {
+	lastMousePosition.x = _x;
+	lastMousePosition.y = _y;
+	int x = _x;
+	int y = _y;
 	if (button == MOUSE_LEFT) {
 		x -= offsetX;
+		y += offsetY;
 		lastMousePosition.x = x;
 		lastMousePosition.y = y;
 
@@ -129,11 +138,12 @@ void CustomTextArea::MouseDown(const MouseButton button, const int x_, const int
 	}
 }
 
-void CustomTextArea::DoubleClick(const MouseButton button, const int x_, const int y) {
+void CustomTextArea::DoubleClick(const MouseButton button, const int _x, const int _y) {
 	//if ((style & CUSTOM_TEXT_FIELD_READONLY) != 0) return;
 
 	if (button != MOUSE_LEFT) return;
-	int x = x_ - offsetX;
+	int x = _x - offsetX;
+	int y = _y + offsetY;
 	if (Abs(lastMousePosition.x - x) <= doubleClickRange and Abs(lastMousePosition.y - y) <= doubleClickRange) {
 		WString badchars = "<>,./\\?[]{}!@#$%^&*()-_=+| 	\n";
 
@@ -205,11 +215,13 @@ void CustomTextArea::TripleClick(const MouseButton button, const int x, const in
 }
 
 
-void CustomTextArea::MouseMove(const int x_, const int y) {
-	int x = x_;
+void CustomTextArea::MouseMove(const int _x, const int _y) {
+	int x = _x;
+	int y = _y;
 	if (pressed) {
 		//Select range of characters
 		x = x - offsetX;
+		y = y + offsetY;
 		int currentcaretpos = caretPosition;
 		int prevcaretpos = caretPosition + sellen;
 		caretPosition = GetCharAtPosition(iVec2(x, y), false);
@@ -219,19 +231,19 @@ void CustomTextArea::MouseMove(const int x_, const int y) {
 		}
 		UpdateOffset();
 	}
-	Widget::MouseMove(x_, y);
+	Widget::MouseMove(_x, _y);
 }
 
 void CustomTextArea::UpdateOffset() {
 	int width = GetSize().x;
-	auto c = text.Right(1);
-	auto font = GetInterface()->font;
-	int cw = GetInterface()->GetTextWidth(font, fontscale, c, fontweight);
-	int tw = GetInterface()->GetTextWidth(font, fontscale, text, fontweight);
-	if (tw + textIndent * 2 > width) {
+	int height = GetSize().y;
+	auto character = text.Right(1);
+	auto const& font = GetInterface()->font;
+	int textWidth = GetInterface()->GetTextWidth(font, fontscale, text, fontweight);
+	if (textWidth + textIndent * 2 > width) {
 		auto fragment = GetSelectedText();
-		int fw = GetInterface()->GetTextWidth(font, fontscale, fragment, fontweight);
-		if (fw + textIndent * 2 > width) {
+		int fragmentWidth = GetInterface()->GetTextWidth(font, fontscale, fragment, fontweight);
+		if (fragmentWidth + textIndent * 2 > width) {
 			int coord = GetCaretCoord().x;
 			if (offsetX + coord - textIndent < 0) {
 				offsetX = -coord + textIndent;
@@ -249,11 +261,50 @@ void CustomTextArea::UpdateOffset() {
 				offsetX = -(coord2 - (width - textIndent));
 			}
 		}
-		if (offsetX + tw < width - textIndent * 2) {
-			offsetX = (width - tw - textIndent * 2);
+		if (offsetX + textWidth < width - textIndent * 2) {
+			offsetX = (width - textWidth - textIndent * 2);
 		}
 	} else {
 		offsetX = 0;
+	}
+	vector<WString> lines = text.Split("\n");
+	if (!text.empty() && text[text.length() - 1] == '\n') {
+		//for new line made with Enter
+		lines.push_back(WString(""));
+	}
+	int totalCharCount = 0;
+	if (lines.size() * stringHeight > height) {
+		for (int i = 0; i < lines.size(); i++) {
+			//found current line?
+			if (caretPosition <= (totalCharCount + lines[i].size())) {
+				auto caretPositionHeight = (i + 1) * stringHeight;
+				if (caretPositionHeight < height + offsetY && caretPositionHeight > offsetY) {
+					//cursor is visible
+					break;
+				} else if (caretPositionHeight > height) {
+					offsetY = caretPositionHeight - height;
+					break;
+				} else if (offsetY > 0 && caretPositionHeight <= offsetY) {
+					//if cursor upper than visible part
+					for (int j = 0; j < lines.size(); j++) {
+						offsetY = offsetY - stringHeight;
+						if (offsetY == 0 || (caretPositionHeight < height + offsetY && caretPositionHeight > offsetY)) {
+							break;
+						}
+					}
+					break;
+				} else {
+					offsetY = 0;
+				}
+				break;
+			}
+			totalCharCount = totalCharCount + (int)lines[i].size() + 1;
+		}
+	} else {
+		offsetY = 0;
+	}
+	if (offsetY < 0) {
+		offsetY = 0;
 	}
 	resetCursorBlinking();
 }
@@ -385,7 +436,14 @@ void CustomTextArea::KeyChar(const int keychar) {
 }
 
 void CustomTextArea::SetText(const WString& text) {
+	bool isSameText = GetText() == text;
 	CustomWidget::SetText(text);
+	if (!isSameText) {
+		caretPosition = 0;
+		sellen = 0;
+		offsetX = 0;
+		offsetY = 0;
+	}
 }
 
 void CustomTextArea::SetHidden(const bool hide) {
@@ -422,25 +480,24 @@ void CustomTextArea::Draw(const int x, const int y, const int width, const int h
 				if (c2 <= totalCharCount + lines[i].size()) {
 					auto caretCoord1 = GetCaretCoord(c1);
 					auto caretCoord2 = GetCaretCoord(c2);
-					AddBlock(iVec2(caretCoord1.x, caretCoord1.y), iVec2(caretCoord2.x - caretCoord1.x, stringHeight), color[WIDGETCOLOR_RAISED], false);
+					AddBlock(iVec2(caretCoord1.x + offsetX, caretCoord1.y - offsetY), iVec2(caretCoord2.x - caretCoord1.x, stringHeight), color[WIDGETCOLOR_RAISED], false);
 					break;
 				//selection starts on this line and ends later on another one
 				} else {
 					auto caretCoord1 = GetCaretCoord(c1);
 					int fw = gui->GetTextWidth(gui->font, fontscale, lines[i].Right(lines[i].size() - (c1 - totalCharCount)), fontweight);
-					AddBlock(iVec2(caretCoord1.x, caretCoord1.y), iVec2(fw, stringHeight), color[WIDGETCOLOR_RAISED], false);
+					AddBlock(iVec2(caretCoord1.x + offsetX, caretCoord1.y - offsetY), iVec2(fw, stringHeight), color[WIDGETCOLOR_RAISED], false);
 					doStartSelection = true;
-
 				}
 			//full line selections between start and end lines
 			} else if (doStartSelection && c2 > totalCharCount + lines[i].size()) { 
 				int fw = !lines[i].empty() ? gui->GetTextWidth(gui->font, fontscale, lines[i], fontweight) : indent;
-				AddBlock(iVec2(textIndent, i * stringHeight), iVec2(fw, stringHeight), color[WIDGETCOLOR_RAISED], false);
+				AddBlock(iVec2(textIndent + offsetX, i * stringHeight - offsetY), iVec2(fw, stringHeight), color[WIDGETCOLOR_RAISED], false);
 			//end selection
 			} else if (doStartSelection) {
 				auto caretCoord2 = GetCaretCoord(c2);
 				int fw = gui->GetTextWidth(gui->font, fontscale, lines[i].Left(c2 - totalCharCount), fontweight);
-				AddBlock(iVec2(textIndent, caretCoord2.y), iVec2(fw, stringHeight), color[WIDGETCOLOR_RAISED], false);
+				AddBlock(iVec2(textIndent + offsetX, caretCoord2.y - offsetY), iVec2(fw, stringHeight), color[WIDGETCOLOR_RAISED], false);
 				break;
 			}
 			totalCharCount = totalCharCount + lines[i].size() + 1;
@@ -450,15 +507,18 @@ void CustomTextArea::Draw(const int x, const int y, const int width, const int h
 	//Caret
 	if ((style & CUSTOM_TEXT_FIELD_READONLY) == 0 && gui->GetFocus() == Self() && !doHideCursor) {
 		auto caretCoord = GetCaretCoord();
-		AddBlock(iVec2(caretCoord.x + offsetX, caretCoord.y), iVec2(1, stringHeight), color[WIDGETCOLOR_FOREGROUND], false);
+		AddBlock(iVec2(caretCoord.x + offsetX, caretCoord.y - offsetY), iVec2(1, stringHeight), color[WIDGETCOLOR_FOREGROUND], false);
 	}
 
 	//Label
 	if (!text.empty()) {
 		auto textPos = iVec2(0) + cornerradius;
 		textPos.x = textPos.x + textIndent + offsetX;
-		auto textSize = size - cornerradius * textIndent;
-		textSize = textSize - offsetX;
+		textPos.y = textPos.y - offsetY;
+		auto textSize = size;
+		textSize.x = textSize.x - cornerradius * textIndent;
+		textSize.x = textSize.x - offsetX;
+		textSize.y = textSize.y + offsetY;
 		WString blockText;
 		if ((style & CUSTOM_TEXT_FIELD_PASSWORD) != 0) {
 			blockText = std::wstring(text.size(), L'•');

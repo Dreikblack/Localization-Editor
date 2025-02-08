@@ -14,6 +14,7 @@ class CustomTextField : public CustomWidget
 {
 protected:
 	bool ctrlPressed;
+	//is left mouse button pressed?
 	bool pressed;
 	iVec2 lastMousePosition;
 	int textIndent;

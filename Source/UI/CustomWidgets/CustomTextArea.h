@@ -9,9 +9,12 @@ class CustomTextArea : public CustomTextField
 {
 protected:
 	int stringHeight;
+	//when next not fitting widget size
+	//vertical scrolling
+	int offsetY;
 	CustomTextArea();
 	virtual bool Initialize(const int x, const int y, const int width, const int height, const int _stringHeight, shared_ptr<Widget> parent, const int style, WString text = "");
-	int GetCharAtPosition(const iVec2 position, const bool clickOnChar = false);
+	int GetCharAtPosition(iVec2 position, const bool clickOnChar = false);
 	iVec2 GetCaretCoord();
 	iVec2 GetCaretCoord(const int caret);
 	void UpdateOffset() override;
