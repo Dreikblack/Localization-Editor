@@ -53,6 +53,7 @@ bool EditLocalStringDialog::Initialize(const int x, const int y, const int width
 
 	contentField = CustomTextArea::create(indent, rowId * (indent + rowHeight), width - indent * 2, contentHeight - rowId *(rowHeight + indent) - indent, rowHeight, As<EditLocalStringDialog>());
 	addWidget(contentField);
+	contentField->setWarpMode(WARP_WORD);
 	rowId++;
 
 	return isInit;

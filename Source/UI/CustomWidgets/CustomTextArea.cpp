@@ -43,9 +43,8 @@ void CustomTextArea::setStringHeight(int newStringHeight) {
 	SetFontScale(fonstScale);
 }
 
-static vector<WString> Split(WString const& text, WString const& delimiter) {
+static void Split(WString const& text, WString const& delimiter, std::vector<WString>& result) {
 	WString tempText = text;
-	vector<WString> result;
 	while (!tempText.empty()) {
 		int delimiterIndex = tempText.Find(delimiter);
 		if (delimiterIndex == -1) {
@@ -58,7 +57,6 @@ static vector<WString> Split(WString const& text, WString const& delimiter) {
 			result.push_back("");
 		}
 	}
-	return result;
 }
 
 int CustomTextArea::GetCharAtPosition(iVec2 position, const bool clickOnChar) {
@@ -72,7 +70,8 @@ int CustomTextArea::GetCharAtPosition(iVec2 position, const bool clickOnChar) {
 	if (position.y < 0) {
 		position.y = 0;
 	}
-	vector<WString> lines = Split(text, "\n");
+	vector<WString> lines;
+	Split(text, "\n", lines);
 	int lineIndex = position.y / stringHeight;
 	if (lines.empty()) {
 		lineIndex = 0;
@@ -115,7 +114,8 @@ iVec2 CustomTextArea::GetCaretCoord(const int caret) {
 	int indentX = textIndent;
 	int count = Min((int)caret, (int)text.length());
 	auto tempText = text.Replace("\r", "");
-	vector<WString> lines = Split(text, "\n");
+	vector<WString> lines;
+	Split(text, "\n", lines);
 	int currentCount = 0;
 	int lineIndex = 0;
 	for (auto& line : lines) {
@@ -291,7 +291,8 @@ void CustomTextArea::UpdateOffset() {
 	} else {
 		offsetX = 0;
 	}
-	vector<WString> lines = Split(text, "\n");
+	vector<WString> lines;
+	Split(text, "\n", lines);	
 	int totalCharCount = 0;
 	if (lines.size() * stringHeight > height) {
 		for (int i = 0; i < lines.size(); i++) {
@@ -351,7 +352,8 @@ bool CustomTextArea::KeyDown(const KeyCode key) {
 		moveCaretRight();
 		wasSymbolTyped = false;
 	} else if (key == KEY_UP) {
-		vector<WString> lines = Split(text, "\n");
+		vector<WString> lines;
+		Split(text, "\n", lines);	
 		if (lines.size() > 1 && caretPosition > lines[0].size()) {
 			int totalCharCount = lines[0].size() + 1;
 			for (int i = 1; i < lines.size(); i++) {
@@ -376,7 +378,8 @@ bool CustomTextArea::KeyDown(const KeyCode key) {
 			}
 		}
 	} else if (key == KEY_DOWN) {
-		vector<WString> lines = Split(text, "\n");
+		vector<WString> lines;
+		Split(text, "\n", lines);
 		if (lines.size() > 1) {
 			int totalCharCount = 0;
 			for (int i = 0; i < (lines.size() - 1); i++) {
@@ -401,7 +404,8 @@ bool CustomTextArea::KeyDown(const KeyCode key) {
 			}
 		}
 	} else if (key == KEY_HOME) {
-		vector<WString> lines = Split(text, "\n");
+		vector<WString> lines;
+		Split(text, "\n", lines);
 		if (lines.size() == 1) {
 			caretPosition = 0;
 		} else {
@@ -418,7 +422,8 @@ bool CustomTextArea::KeyDown(const KeyCode key) {
 		UpdateOffset();
 		Redraw();
 	} else if (key == KEY_END) {
-		vector<WString> lines = Split(text, "\n");
+		vector<WString> lines;
+		Split(text, "\n", lines);
 		if (lines.size() == 1) {
 			caretPosition = text.size();
 		} else {
@@ -489,7 +494,8 @@ void CustomTextArea::Draw(const int x, const int y, const int width, const int h
 		int c1 = Min(caretPosition, caretPosition + sellen);
 		int c2 = Max(caretPosition, caretPosition + sellen);
 		bool doStartSelection = false;
-		vector<WString> lines = Split(text, "\n");
+		vector<WString> lines;
+		Split(text, "\n", lines);
 		int totalCharCount = 0;
 		for (int i = 0; i < lines.size(); i++) {
 			if (!doStartSelection && c1 > totalCharCount + lines[i].size()) {
@@ -588,41 +594,52 @@ void CustomTextArea::doWarpText() {
 	if (warpMode == WARP_NONE) {
 		return;
 	}
-	bool doWarp = false;
-	vector<WString> lines = Split(text, "\n");
+	bool doWarp;
+	vector<WString> lines;
+	Split(text, "\n", lines);
 	int totalCharCount = 0;
-	for (int i = 0; i < lines.size(); i++) {
-		auto currentLineWidth = GetInterface()->GetTextWidth(GetInterface()->font, fontscale, lines[i], fontweight);
-		if (currentLineWidth > (width - textIndent * 2)) {
-			vector<WString> words;
-			if (warpMode == WARP_WORD) {
-				words = Split(lines[i], " ");
-			}
-			if (words.size() > 1 || warpMode == WARP_CHAR) {
-				auto lastWord = warpMode == WARP_CHAR || words[words.size() - 1].empty() ? lines[i].Right(1) : words[words.size() - 1];
-				if (i < (lines.size() - 1)) {
-					if (lines[i + 1].empty()) {
-						lines[i + 1] = lastWord;
+	vector<WString> words;
+	WString lastWord;
+	int currentLineWidth;
+	bool doChangeText = false;
+	do {
+		doWarp = false;
+		for (int i = 0; i < lines.size(); i++) {
+			currentLineWidth = GetInterface()->GetTextWidth(GetInterface()->font, fontscale, lines[i], fontweight);
+			if (currentLineWidth > (width - textIndent * 2)) {
+				if (warpMode == WARP_WORD) {
+					words.clear();
+					Split(lines[i], " ", words);
+				}
+				if (words.size() > 1 || warpMode == WARP_CHAR) {
+					lastWord = warpMode == WARP_CHAR || words[words.size() - 1].empty() ? lines[i].Right(1) : words[words.size() - 1];
+					if (i < (lines.size() - 1)) {
+						if (lines[i + 1].empty()) {
+							lines[i + 1] = lastWord;
+						} else {
+							lines[i + 1] = lastWord == " " || lines[i + 1].Left(1) == " " || warpMode == WARP_CHAR ? lastWord + lines[i + 1] : lastWord + " " + lines[i + 1];
+						}
+						lines[i] = lines[i].Left(lines[i].size() - lastWord.size());
+						doWarp = true;
+						break;
 					} else {
-						lines[i + 1] = lastWord == " " || lines[i + 1].Left(1) == " " || warpMode == WARP_CHAR ? lastWord + lines[i + 1] : lastWord + " " + lines[i + 1];
+						lines[i] = lines[i].Left(lines[i].size() - lastWord.size());
+						lines.push_back(lastWord);
+						doWarp = true;
+						break;
 					}
-					lines[i] = lines[i].Left(lines[i].size() - lastWord.size());
-					doWarp = true;
-					break;
 				} else {
-					lines[i] = lines[i].Left(lines[i].size() - lastWord.size());
-					lines.push_back(lastWord);
-					doWarp = true;
+					doWarp = false;
 					break;
 				}
-			} else {
-				doWarp = false;
-				break;
 			}
+			totalCharCount = totalCharCount + (int)lines[i].size() + 1;
 		}
-		totalCharCount = totalCharCount + (int)lines[i].size() + 1;
-	}
-	if (doWarp) {
+		if (doWarp) {
+			doChangeText = true;
+		}
+	} while (doWarp);
+	if (doChangeText) {
 		WString newText = "";
 		for (int i = 0; i < lines.size(); i++) {
 			newText = newText + lines[i];
@@ -631,7 +648,6 @@ void CustomTextArea::doWarpText() {
 			}
 		}
 		m_text = newText;
-		doWarpText();
 	}	
 	return;
 }
