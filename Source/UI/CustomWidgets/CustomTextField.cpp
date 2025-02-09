@@ -308,8 +308,15 @@ void CustomTextField::MouseLeave(const int x, const int y) {
 }
 
 void CustomTextField::KeyUp(const KeyCode key) {
-	if (key == KEY_CONTROL) ctrlPressed = false;
-	if (key == KEY_SHIFT) shiftPressed = false;
+	if (key == KEY_CONTROL) {
+		ctrlPressed = false;
+	}
+	if (key == KEY_SHIFT) {
+		shiftPressed = false;
+	}
+	if (key == KEY_TAB) {
+		KeyChar('\t');
+	}
 }
 
 bool CustomTextField::KeyDown(const KeyCode key) {
