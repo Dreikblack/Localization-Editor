@@ -156,7 +156,7 @@ void CustomTable::MouseMove(const int x, const int y) {
 }
 
 void CustomTable::DoubleClick(const MouseButton button, const int x, const int y) {
-	if (button == MOUSE_LEFT && doubleClickItemListener) {
+	if (button == MOUSE_LEFT && doubleClickItemListener && selectedItemId >=0) {
 		doubleClickItemListener(Event(EVENT_WIDGETACTION, Self(), dataIds[selectedItemId]));
 	}
 }

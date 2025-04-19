@@ -58,7 +58,8 @@ protected:
 	void moveCaretLeft();
 	void moveCaretRight();
 	void del();
-	void resetCursorBlinking();
+	void resetCursorBlinking();	
+	bool KeyFilter(const KeyCode key) override;
 public:
 	bool doHideCursor;
 	int minValue = 0;

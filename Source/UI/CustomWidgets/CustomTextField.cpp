@@ -79,8 +79,8 @@ int CustomTextField::GetCaretCoord() {
 int CustomTextField::GetCaretCoord(const int caret) {
 	auto text = this->text;
 	if ((style & CUSTOM_TEXT_FIELD_PASSWORD) != 0) text = wstring(this->text.size(), L'•');
-	float indentX = textIndent;
-	int count = Min((int)caret, (int)text.length());
+	int indentX = textIndent;
+	int count = Min(caret, (int)text.length());
 	for (int n = 0; n < count; ++n) {
 		auto c = text.Mid(n, 1);
 		indentX += GetInterface()->GetTextWidth(GetInterface()->font, fontscale, c, fontweight);
@@ -278,6 +278,10 @@ void CustomTextField::resetCursorBlinking() {
 	ListenEvent(EVENT_TIMERTICK, timer, drawCallback, Self());
 }
 
+bool CustomTextField::KeyFilter(const KeyCode key) {
+	return false;
+}
+
 void CustomTextField::GainFocus() {
 	resetCursorBlinking();
 	if (!hasWidgetStyle(CUSTOM_TEXT_FIELD_READONLY) && focusListener) {
@@ -313,9 +317,6 @@ void CustomTextField::KeyUp(const KeyCode key) {
 	}
 	if (key == KEY_SHIFT) {
 		shiftPressed = false;
-	}
-	if (key == KEY_TAB) {
-		KeyChar('\t');
 	}
 }
 
@@ -359,6 +360,8 @@ bool CustomTextField::KeyDown(const KeyCode key) {
 		wasSymbolTyped = false;
 	} else if (key == KEY_DELETE) {
 		del();
+	} else if (key == KEY_TAB) {
+		KeyChar('\t');
 	}
 	if (wasSymbolTyped && doTriggerValueChangeOnType && valueChangelistener) {
 		valueChangelistener(Event(EVENT_WIDGETACTION, Self()->As<CustomTextField>(), getIntegerValue(), 0, 0, nullptr, text));

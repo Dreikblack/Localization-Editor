@@ -445,6 +445,8 @@ bool CustomTextArea::KeyDown(const KeyCode key) {
 		}
 	} else if (key == KEY_DELETE) {
 		del();
+	} else if (key == KEY_TAB) {
+		KeyChar('\t');
 	}
 	if (wasSymbolTyped && doTriggerValueChangeOnType && valueChangelistener) {
 		valueChangelistener(Event(EVENT_WIDGETACTION, Self()->As<CustomTextArea>(), getIntegerValue(), 0, 0, nullptr, text));

@@ -571,6 +571,9 @@ void Application::loadLocalization(WString file) {
 			WString text = stream->ReadWString();
 			vector<WString> textStrings = text.Split("\r\n");
 			for (WString line : textStrings) {
+				if (line.empty()) {
+					continue;
+				}
 				vector<WString> entitiyProperties = line.Split("=");
 				if (entitiyProperties.size() > 1) {
 					WString newLine = entitiyProperties[1].Replace("\\n", "\n");
